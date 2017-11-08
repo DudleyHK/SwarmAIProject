@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+#include <DirectXColors.h>
+
 #include "DXManager.h"
 #include "Utilities.h"
 
@@ -290,17 +292,9 @@ void DXManager::Shutdown()
 Create colour to clear back buffer to.
 Clear the back buffer and depth buffer. 
 */
-void DXManager::BeginScene(float red, float green, float blue, float alpha)
+void DXManager::BeginScene()
 {
-	auto colour = std::vector<float>(
-	{
-		red,
-		green,
-		blue,
-		alpha
-	});
-
-	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, colour.data());
+	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, DirectX::Colors::SkyBlue);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 

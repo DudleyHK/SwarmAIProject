@@ -40,18 +40,16 @@ bool GraphicsManager::Update()
 	{
 		return false;
 	}
-
 	return true;
 }
 
 
 bool GraphicsManager::Render()
 {
-	// Clear the buffers to begin the scene.
-	m_pDXManager->BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
+	m_pDXManager->BeginScene();
 
 
-	// Present the rendered scene to the screen.
+
 	m_pDXManager->EndScene();
 	return true;
 }

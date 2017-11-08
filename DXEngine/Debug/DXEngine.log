@@ -1,4 +1,0 @@
-﻿  DXManager.cpp
-c:\users\dudley\documents\visual studio 2015\projects\swarmaiproject\swarmaiproject\dxengine\dxmanager.cpp(70): warning C4018: '<': signed/unsigned mismatch
-  DXEngine.vcxproj -> C:\Users\Dudley\documents\visual studio 2015\Projects\SwarmAIProject\Debug\DXEngine.exe
-  DXEngine.vcxproj -> C:\Users\Dudley\documents\visual studio 2015\Projects\SwarmAIProject\Debug\DXEngine.pdb (Full PDB)

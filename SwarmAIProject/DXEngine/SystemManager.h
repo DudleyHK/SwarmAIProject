@@ -24,11 +24,11 @@ public:
 	void Shutdown();
 	void Run();
 
-	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
+	LRESULT CALLBACK MessageHandler(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 private:
 	bool Update();
-	void InitWindows(int&, int&);
+	void InitWindows(int& screenWidth, int& screenHeight);
 	void ShutdownWindow();
 
 	LPCWSTR m_applicationName;
@@ -39,6 +39,6 @@ private:
 	std::unique_ptr<GraphicsManager> m_pGraphics = nullptr;
 };
 
-static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 static SystemManager* ApplicationHandle = nullptr;
   
