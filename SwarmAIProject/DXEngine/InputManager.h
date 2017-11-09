@@ -4,6 +4,11 @@
 
 */
 #pragma once
+#define DIRECTINPUT_VERSION 0x0800
+
+#include <dinput.h>
+#include <DirectXMath.h>
+
 
 
 
@@ -11,16 +16,38 @@ class InputManager
 {
 public:
 	InputManager() = default;
-	//InputManager(const InputManager&);
 	~InputManager() = default;
 
-	void Init();
+	bool Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int screenHeight);
+	void Shutdown();
+	bool Update();
 
-	void KeyDown(unsigned int);
-	void KeyUp(unsigned int);
+	bool IsEscapePressed();
+	bool IsLeftPressed();
+	bool IsRightPressed();
+	bool IsUpPressed();
+	bool IsDownPressed();
+	bool IsAPressed();
+	bool IsZPressed();
+	bool IsPgUpPressed();
+	bool IsPgDownPressed();
 
-	bool IsKeyDown(unsigned int);
+	DirectX::XMINT2 InputManager::GetMouseLocation();
 
 private:
-	bool m_keys[256];
+	bool ReadKeyboard();
+	bool ReadMouse();
+	void ProcessInput();
+
+	IDirectInput8* m_directInput;
+	IDirectInputDevice8* m_keyboard;
+	IDirectInputDevice8* m_mouse;
+
+	unsigned char m_keyboardState[256];
+	DIMOUSESTATE m_mouseState;
+
+	int m_screenWidth;
+	int m_screenHeight;
+
+	DirectX::XMINT2 m_mouseLocation = {0, 0};
 };

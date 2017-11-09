@@ -14,21 +14,16 @@ bool SystemManager::Init()
 
 	InitWindows(screenWidth, screenHeight);
 
-	m_pInput = std::make_unique<InputManager>();
-	if (!m_pInput)
+
+
+
+	m_pApplication = std::make_unique<Application>();
+	if (!m_pApplication)
 	{
 		return false;
 	}
 
-	m_pInput->Init();
-
-	m_pGraphics = std::make_unique<GraphicsManager>();
-	if (!m_pGraphics)
-	{
-		return false;
-	}
-
-	if (!m_pGraphics->Init(screenWidth, screenHeight, m_hwnd))
+	if (!m_pApplication->Init(m_hinstance, m_hwnd, screenWidth, screenHeight))
 	{
 		return false;
 	}
@@ -37,10 +32,11 @@ bool SystemManager::Init()
 
 void SystemManager::Shutdown()
 {
-	if (m_pGraphics)
+	if (m_pApplication)
 	{
-		m_pGraphics->Shutdown();
+		m_pApplication->Shutdown();
 	}
+
 	ShutdownWindow();
 }
 
@@ -75,12 +71,14 @@ void SystemManager::Run()
 
 bool SystemManager::Update()
 {
-	if (m_pInput->IsKeyDown(VK_ESCAPE))
+	// All of this should live in the ApplicationClass.
+	
+	if (!m_pApplication->Update())
 	{
 		return false;
 	}
 
-	if (!m_pGraphics->Update())
+	if(!m_pApplication->Render())
 	{
 		return false;
 	}
@@ -88,20 +86,14 @@ bool SystemManager::Update()
 }
 
 
+
+
+
 LRESULT CALLBACK SystemManager::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
-	switch(umsg)
-	{
-		case WM_KEYDOWN: m_pInput->KeyDown((unsigned int)wparam);
-			return 0;
-
-		case WM_KEYUP: m_pInput->KeyUp((unsigned int)wparam);
-			return 0;
-
-		default: 
-			return DefWindowProc(hwnd, umsg, wparam, lparam);
-	}
+	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
+
 
 void SystemManager::InitWindows(int& screenWidth, int& screenHeight)
 {

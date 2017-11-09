@@ -9,8 +9,8 @@
 #include <memory>
 #include <Windows.h>
 
-#include "InputManager.h"
-#include "GraphicsManager.h"
+
+#include "Application.h"
 
 
 class SystemManager
@@ -35,8 +35,7 @@ private:
 	HINSTANCE m_hinstance;
 	HWND m_hwnd;
 
-	std::unique_ptr<InputManager>    m_pInput = nullptr;
-	std::unique_ptr<GraphicsManager> m_pGraphics = nullptr;
+	std::unique_ptr<Application>  m_pApplication = nullptr;
 };
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
