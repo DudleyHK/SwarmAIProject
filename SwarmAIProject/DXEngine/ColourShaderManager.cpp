@@ -109,10 +109,8 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	polygonLayout[2].InstanceDataStepRate = 0;
 
 
-	// Get a count of the elements in the layout.
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	// Create the vertex input layout.
 	result = device->CreateInputLayout(polygonLayout, numElements, 
 									   vertexShaderBuffer->GetBufferPointer(), 
 									   vertexShaderBuffer->GetBufferSize(),

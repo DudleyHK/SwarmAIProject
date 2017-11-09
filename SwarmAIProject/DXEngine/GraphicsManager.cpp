@@ -99,6 +99,15 @@ bool GraphicsManager::Render()
 	DirectX::XMMATRIX projMat;
 	DirectX::XMMATRIX worldMat;
 
+	static float rotation = 0.f;
+
+	rotation += (float)DirectX::XM_PI * 0.01f;
+	if(rotation > 360.f)
+	{
+		rotation -= 360.f;
+	}
+
+
 	m_pDXManager->BeginScene();
 
 	m_pCamera->Render();
@@ -106,6 +115,9 @@ bool GraphicsManager::Render()
 	m_pCamera->GetViewMatrix(viewMat);
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
+
+	// Rotate the cube
+	worldMat = DirectX::XMMatrixRotationY(rotation);
 
 	m_pModelManager->Render(m_pDXManager->GetDeviceContext());
 

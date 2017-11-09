@@ -13,7 +13,7 @@ cbuffer MatrixBuffer
 
 struct VertexInputType
 {
-	float4 position : SV_POSITION;
+	float4 position : POSITION;
 	float2 uv       : TEXCOORD0;
 	float4 normal   : NORMAL;
 };
