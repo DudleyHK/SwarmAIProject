@@ -9,7 +9,7 @@
 
 bool ColourShaderManager::Init(ID3D11Device* device, HWND hwnd)
 {
-	auto result = InitShader(device, hwnd, L"../Engine/DefaultColour.vs.hlsl", L"../Engine/DefaultColour.ps.hlsl");
+	auto result = InitShader(device, hwnd, L"../DXEngine/ResourceFiles/DefaultColour.vs.hlsl", L"../DXEngine/ResourceFiles/DefaultColour.ps.hlsl");
 	if(!result)
 	{
 		return false;
@@ -39,7 +39,7 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	ID3D10Blob* vertexShaderBuffer = nullptr;
 	ID3D10Blob* pixelShaderBuffer = nullptr;
 
-	auto result = D3DCompileFromFile(vsFilePath, NULL, NULL, "ColorVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+	auto result = D3DCompileFromFile(vsFilePath, NULL, NULL, "ColourVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 									 &vertexShaderBuffer, &errorMessage);
 	if(FAILED(result))
 	{
@@ -49,28 +49,41 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 		}
 		else
 		{
-			MessageBox(hwnd, vsFilePath, L"Missing Shader File", MB_OK);
+			MessageBox(hwnd, vsFilePath, L"Missing Vertex Shader File", MB_OK);
 		}
 		return false;
 	}
 
-	// Create the vertex shader from the buffer.
+	result = D3DCompileFromFile(psFilePath, NULL, NULL, "ColourPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+									 &pixelShaderBuffer, &errorMessage);
+	if(FAILED(result))
+	{
+		if(errorMessage)
+		{
+			OutputShaderErrorMessage(errorMessage, hwnd, psFilePath);
+		}
+		else
+		{
+			MessageBox(hwnd, psFilePath, L"Missing Pixel Shader File", MB_OK);
+		}
+		return false;
+	}
+
 	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_pVertexShader);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	// Create the pixel shader from the buffer.
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pPixelShader);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
 	// Now setup the layout of the data that goes into the shader.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -79,20 +92,31 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[0].InstanceDataStepRate = 0;
 
-	polygonLayout[1].SemanticName = "COLOR";
+	polygonLayout[1].SemanticName = "TEXCOORD";
 	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	polygonLayout[1].InputSlot = 0;
 	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[1].InstanceDataStepRate = 0;
 
+	polygonLayout[2].SemanticName = "NORMAL";
+	polygonLayout[2].SemanticIndex = 0;
+	polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	polygonLayout[2].InputSlot = 0;
+	polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	polygonLayout[2].InstanceDataStepRate = 0;
+
+
 	// Get a count of the elements in the layout.
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
-									   vertexShaderBuffer->GetBufferSize(), &m_pLayout);
+	result = device->CreateInputLayout(polygonLayout, numElements, 
+									   vertexShaderBuffer->GetBufferPointer(), 
+									   vertexShaderBuffer->GetBufferSize(),
+									   &m_pLayout);
 	if(FAILED(result))
 	{
 		return false;
@@ -101,9 +125,8 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	SafeRelease(vertexShaderBuffer);
 	SafeRelease(pixelShaderBuffer);
 
-
-	D3D11_BUFFER_DESC matrixBufferDesc = {0};
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	D3D11_BUFFER_DESC matrixBufferDesc = {0};
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -137,7 +160,7 @@ void ColourShaderManager::OutputShaderErrorMessage(ID3D10Blob* errorMsg, HWND hw
 	unsigned int bufferSize = bufferSize = errorMsg->GetBufferSize();
 	fout.open("shader-error.txt");
 
-	for(auto i = 0; i<bufferSize; i++)
+	for(unsigned int i = 0; i < bufferSize; i++)
 	{
 		fout << compileErrors[i];
 	}
@@ -154,6 +177,7 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	viewMat = DirectX::XMMatrixTranspose(viewMat);
 	projMat = DirectX::XMMatrixTranspose(projMat);
 
+	// create a resource which can be manipulated at run time is desired.
 	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
 	auto result = deviceContext->Map(m_pMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))

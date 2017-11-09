@@ -9,6 +9,10 @@
 #include <windows.h>
 
 #include "DXManager.h"
+#include "Camera.h"
+#include "ColourShaderManager.h"
+#include "ModelManager.h"
+
 
 const bool  g_FULL_SCREEN = false;
 const bool  g_VSYNC_ENABLED = true;
@@ -22,7 +26,7 @@ public:
 	// GraphicsManager(const GraphicsManager&);
 	~GraphicsManager() = default;
 
-	bool Init(int, int, HWND);
+	bool Init(int screenWidth, int screenHeight, HWND hwnd);
 	void Shutdown();
 	bool Update();
 
@@ -32,6 +36,9 @@ private:
 	bool Render();
 
 	std::unique_ptr<DXManager> m_pDXManager = nullptr;
+	std::unique_ptr<Camera> m_pCamera = nullptr;
+	std::unique_ptr<ModelManager> m_pModelManager = nullptr;
+	std::unique_ptr<ColourShaderManager> m_pColShaderManager = nullptr;
 
 	
 };

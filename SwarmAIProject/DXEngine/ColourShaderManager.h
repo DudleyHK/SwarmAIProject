@@ -4,8 +4,6 @@
 
 */
 #pragma once
-
-
 #include <fstream>
 
 #include <d3d11.h>

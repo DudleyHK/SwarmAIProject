@@ -3,13 +3,20 @@
 
 
 */
+#include <fstream>
+
 #include "ModelManager.h"
 #include "Utilities.h"
 
 
 
-const bool ModelManager::Init(ID3D11Device* device)
+const bool ModelManager::Init(ID3D11Device* device, char* modelFilename)
 {
+	if(!LoadModel(modelFilename))
+	{
+		return false;
+	}
+
 	if(!InitBuffers(device))
 	{
 		return false;
@@ -20,6 +27,7 @@ const bool ModelManager::Init(ID3D11Device* device)
 void ModelManager::Shutdown()
 {
 	ShutdownBuffers();
+	ReleaseModel();
 }
 
 void ModelManager::Render(ID3D11DeviceContext* deviceContext)
@@ -32,11 +40,55 @@ int ModelManager::GetIndexCount()
 	return m_indexCount;
 }
 
+
+bool ModelManager::LoadModel(char* filename)
+{
+	char input;
+	std::ifstream fileIn;
+
+	fileIn.open(filename);
+	if(fileIn.fail()) 
+		return false;
+
+	
+	fileIn.get(input);
+	while(input != ':')
+	{
+		fileIn.get(input);
+	}
+
+	fileIn >> m_vertexCount;
+
+	m_indexCount = m_vertexCount;
+	m_pModelType.reserve(m_vertexCount);
+
+	fileIn.get(input);
+	while(input != ':')
+	{
+		fileIn.get(input);
+	}
+	fileIn.get(input);
+	fileIn.get(input);
+
+	for(auto i = 0; i < m_vertexCount; i++)
+	{
+		m_pModelType.push_back(std::make_unique<ModelType>());
+		fileIn >> m_pModelType[i]->x >> m_pModelType[i]->y >> m_pModelType[i]->z;
+		fileIn >> m_pModelType[i]->tu >> m_pModelType[i]->tv;
+		fileIn >> m_pModelType[i]->nx >> m_pModelType[i]->ny >> m_pModelType[i]->nz;
+	}
+
+	fileIn.close();
+	return true;
+}
+
+void ModelManager::ReleaseModel()
+{
+	m_pModelType.clear();
+}
+
 const bool ModelManager::InitBuffers(ID3D11Device* device)
 {
-	m_vertexCount = 3;
-	m_indexCount = 3;
-
 	VertexType* vertices = new VertexType[m_vertexCount];
 	if(!vertices)
 	{
@@ -49,20 +101,14 @@ const bool ModelManager::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	// fill the vertex and index arrays.
-	vertices[0].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].colour   = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	for(auto i = 0; i < m_vertexCount; i++)
+	{
+		vertices[i].position  = {m_pModelType[i]->x,  m_pModelType[i]->y, m_pModelType[i]->z};
+		vertices[i].texCoords = {m_pModelType[i]->tu, m_pModelType[i]->tv};
+		vertices[i].normals   = {m_pModelType[i]->nx, m_pModelType[i]->ny, m_pModelType[i]->nz};
 
-	vertices[1].position = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].colour = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	vertices[2].position = DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].colour = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-
-	// Load the index array with data.
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
+		indices[i] = i;
+	}
 
 	D3D11_BUFFER_DESC vertexBufferDesc = {0};
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
