@@ -23,7 +23,7 @@ public:
 
 	int GetIndexCount();
 
-	bool LoadModel(char*);
+	bool LoadModel(char* filename);
 	void ReleaseModel();
 
 

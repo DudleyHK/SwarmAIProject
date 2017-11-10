@@ -147,7 +147,15 @@ void SystemManager::InitWindows(int& screenWidth, int& screenHeight)
 		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 	}
 
-	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, WS_POPUP,
+	// Change window type depending on the build
+	DWORD dwStyle;
+#ifdef _DEBUG
+	dwStyle = WS_OVERLAPPEDWINDOW;
+#else
+	dwStyle = WS_POPUP;
+#endif
+
+	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, dwStyle,
 		posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
 
 	ShowWindow(m_hwnd, SW_SHOW);

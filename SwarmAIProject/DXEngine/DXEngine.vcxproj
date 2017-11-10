@@ -185,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ResourceFiles\CubeData.txt" />
+    <Text Include="ResourceFiles\TrianglePyrimidData.txt" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ResourceFiles\DefaultColour.ps.hlsl">

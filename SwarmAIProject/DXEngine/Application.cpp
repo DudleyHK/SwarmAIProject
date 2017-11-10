@@ -56,7 +56,7 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 		return false;
 	}
 
-	result = m_pModelManager->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/CubeData.txt");
+	result = m_pModelManager->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TrianglePyrimidData.txt");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialise the Model Manager", L"Error", MB_OK);
@@ -199,11 +199,11 @@ bool Application::Render()
 
 	static float rotation = 0.f;
 
-	rotation += (float)DirectX::XM_PI * 0.01f;
-	if(rotation > 360.f)
-	{
-		rotation -= 360.f;
-	}
+	//rotation += (float)DirectX::XM_PI * 0.01f;
+	//if(rotation > 360.f)
+	//{
+	//	rotation -= 360.f;
+	//}
 
 
 	m_pDXManager->BeginScene();
