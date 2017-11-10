@@ -36,7 +36,20 @@ private:
 	DirectX::XMFLOAT3 m_position;
 	DirectX::XMFLOAT3 m_rotation;
 
-	float m_frameTime = 0.f;
+	float m_horAcceleration = 1.f;
+	float m_horMaxSpeed = 3.f;
+	float m_horCoolDown = 0.5f;
+
+	float m_vertAcceleration = 1.5f;
+	float m_vertMaxSpeed = 3.5f;
+	float m_vertCoolDown = 1.f;
+
+	float m_rotAcceleration = 1.5f;
+	float m_rotMaxSpeed     = 3.5f;
+	float m_rotCoolDown     = 1.f;
+
+
+	float m_frameTime = 0.1f;
 
 	float m_forwardSpeed   = 0.f;
 	float m_backwardSpeed  = 0.f;

@@ -83,7 +83,10 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 
 	// Position Object
 	m_pPosition = std::make_unique<Position>();
-	if(!m_pPosition) return false;
+	if(!m_pPosition)
+	{
+		return false;
+	}
 	m_pPosition->SetPosition(m_pCamera->GetPosition());
 
 
