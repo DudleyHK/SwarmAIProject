@@ -30,6 +30,44 @@ void Position::SetFrameTime(float time)
 	m_frameTime = time;
 }
 
+void Position::SetSpeedMultiplier(bool multiply)
+{
+	if(multiply && !m_multiplierLock)
+	{
+		m_horAcceleration *= m_speedMultiplier;
+		m_horMaxSpeed     *= m_speedMultiplier;
+		m_horCoolDown     *= m_speedMultiplier;
+					      
+		m_vertAcceleration *= m_speedMultiplier;
+		m_vertMaxSpeed *= m_speedMultiplier;
+		m_vertCoolDown *= m_speedMultiplier;
+
+		m_rotAcceleration *= m_speedMultiplier;
+		m_rotMaxSpeed *= m_speedMultiplier;
+		m_rotCoolDown *= m_speedMultiplier;
+		m_multiplierLock = true;
+	}
+	else
+	{
+		// Set to original Speeds
+		m_horAcceleration = 1.f;
+		m_horMaxSpeed = 3.f;
+		m_horCoolDown = 0.5f;
+
+		m_vertAcceleration = 1.5f;
+		m_vertMaxSpeed = 3.5f;
+		m_vertCoolDown = 1.f;
+
+		m_rotAcceleration = 2.5f;
+		m_rotMaxSpeed = 5.f;
+		m_rotCoolDown = 1.f;
+
+		m_multiplierLock = false;
+	}
+}
+
+
+
 void Position::MoveForward(bool keydown)
 { 
 	if(keydown)
@@ -111,13 +149,11 @@ void Position::MoveUpward(bool keydown)
 		}
 	}
 
-	// Update the height position.
 	m_position.y += m_upwardSpeed;
 }
 
 void Position::MoveDownward(bool keydown)
 {
-	// Update the downward speed movement based on the frame time and whether the user is holding the key down or not.
 	if(keydown)
 	{
 		m_downwardSpeed += m_frameTime * m_vertAcceleration;
@@ -137,13 +173,11 @@ void Position::MoveDownward(bool keydown)
 		}
 	}
 
-	// Update the height position.
 	m_position.y -= m_downwardSpeed;
 }
 
 void Position::TurnLeft(bool keydown)
 {
-	// Update the left turn speed movement based on the frame time and whether the user is holding the key down or not.
 	if(keydown)
 	{
 		m_leftTurnSpeed += m_frameTime * m_rotAcceleration;
@@ -163,10 +197,8 @@ void Position::TurnLeft(bool keydown)
 		}
 	}
 
-	// Update the rotation.
 	m_rotation.y -= m_leftTurnSpeed;
 
-	// Keep the rotation in the 0 to 360 range.
 	if(m_rotation.y < 0.0f)
 	{
 		m_rotation.y += 360.0f;
@@ -175,7 +207,6 @@ void Position::TurnLeft(bool keydown)
 
 void Position::TurnRight(bool keydown)
 {
-	// Update the right turn speed movement based on the frame time and whether the user is holding the key down or not.
 	if(keydown)
 	{
 		m_rightTurnSpeed += m_frameTime * m_rotAcceleration;

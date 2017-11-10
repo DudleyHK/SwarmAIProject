@@ -187,7 +187,6 @@ bool InputManager::IsEscapePressed()
 
 bool InputManager::IsLeftPressed()
 {
-	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
 	if(m_keyboardState[DIK_LEFT] & 0x80)
 	{
 		return true;
@@ -233,9 +232,18 @@ bool InputManager::IsDownPressed()
 }
 
 
+bool InputManager::IsWPressed()
+{
+	if(m_keyboardState[DIK_W] & 0x80)
+	{
+		return true;
+	}
+	return false;
+}
+
+
 bool InputManager::IsAPressed()
 {
-	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
 	if(m_keyboardState[DIK_A] & 0x80)
 	{
 		return true;
@@ -245,9 +253,51 @@ bool InputManager::IsAPressed()
 }
 
 
+bool InputManager::IsSPressed()
+{
+	if(m_keyboardState[DIK_S] & 0x80)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+bool InputManager::IsDPressed()
+{
+	if(m_keyboardState[DIK_D] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+bool InputManager::IsEPressed()
+{
+	if(m_keyboardState[DIK_E] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+
+bool InputManager::IsQPressed()
+{
+	if(m_keyboardState[DIK_Q] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool InputManager::IsZPressed()
 {
-	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
 	if(m_keyboardState[DIK_Z] & 0x80)
 	{
 		return true;
@@ -259,7 +309,6 @@ bool InputManager::IsZPressed()
 
 bool InputManager::IsPgUpPressed()
 {
-	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
 	if(m_keyboardState[DIK_PGUP] & 0x80)
 	{
 		return true;
@@ -271,8 +320,18 @@ bool InputManager::IsPgUpPressed()
 
 bool InputManager::IsPgDownPressed()
 {
-	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
 	if(m_keyboardState[DIK_PGDN] & 0x80)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+bool InputManager::IsLShiftPressed()
+{
+	if(m_keyboardState[DIK_LSHIFT] & 0x80)
 	{
 		return true;
 	}

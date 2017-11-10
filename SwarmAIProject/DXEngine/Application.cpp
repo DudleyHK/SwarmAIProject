@@ -127,23 +127,29 @@ bool Application::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_pPosition->SetFrameTime(frameTime);
 
+
+
 	// Handle the input.
-	keyDown = m_pInput->IsLeftPressed();
+
+	auto multiply = m_pInput->IsLShiftPressed();
+	m_pPosition->SetSpeedMultiplier(multiply);
+
+	keyDown = m_pInput->IsLeftPressed() ? true : m_pInput->IsAPressed();
 	m_pPosition->TurnLeft(keyDown);
 
-	keyDown = m_pInput->IsRightPressed();
+	keyDown = m_pInput->IsRightPressed() ? true : m_pInput->IsDPressed();
 	m_pPosition->TurnRight(keyDown);
 
-	keyDown = m_pInput->IsUpPressed();
+	keyDown = m_pInput->IsUpPressed() ? true : m_pInput->IsWPressed();
 	m_pPosition->MoveForward(keyDown);
 
-	keyDown = m_pInput->IsDownPressed();
+	keyDown = m_pInput->IsDownPressed() ? true : m_pInput->IsSPressed();
 	m_pPosition->MoveBackward(keyDown);
 
-	keyDown = m_pInput->IsAPressed();
+	keyDown = m_pInput->IsEPressed();
 	m_pPosition->MoveUpward(keyDown);
 
-	keyDown = m_pInput->IsZPressed();
+	keyDown = m_pInput->IsQPressed();
 	m_pPosition->MoveDownward(keyDown);
 
 	keyDown = m_pInput->IsPgUpPressed();

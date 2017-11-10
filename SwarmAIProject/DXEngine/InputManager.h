@@ -27,10 +27,16 @@ public:
 	bool IsRightPressed();
 	bool IsUpPressed();
 	bool IsDownPressed();
+	bool IsWPressed();
 	bool IsAPressed();
+	bool IsSPressed();
+	bool IsDPressed();
+	bool IsEPressed();
+	bool IsQPressed();
 	bool IsZPressed();
 	bool IsPgUpPressed();
 	bool IsPgDownPressed();
+	bool IsLShiftPressed();
 
 	DirectX::XMINT2 InputManager::GetMouseLocation();
 

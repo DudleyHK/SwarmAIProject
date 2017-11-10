@@ -45,7 +45,7 @@ void Camera::Render()
 	float yaw   = DirectX::XMConvertToRadians(m_rotation.y);
 	float roll  = DirectX::XMConvertToRadians(m_rotation.z);
 
-	DirectX::XMMATRIX rotationMat = DirectX::XMMatrixRotationRollPitchYaw(yaw, pitch, roll);
+	DirectX::XMMATRIX rotationMat = DirectX::XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
 	
 	// Convert the float3 variables to vectors.
 	DirectX::XMVECTOR lookAtVec = DirectX::XMVector3TransformCoord(DirectX::XMLoadFloat3(&lookAt), rotationMat);
