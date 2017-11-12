@@ -49,7 +49,7 @@ void Camera::Render()
 	
 	// Convert the float3 variables to vectors.
 	DirectX::XMVECTOR lookAtVec = DirectX::XMVector3TransformCoord(DirectX::XMLoadFloat3(&lookAt), rotationMat);
-	DirectX::XMVECTOR upVec    = DirectX::XMVector3TransformCoord(DirectX::XMLoadFloat3(&up), rotationMat);
+	DirectX::XMVECTOR upVec     = DirectX::XMVector3TransformCoord(DirectX::XMLoadFloat3(&up), rotationMat);
 	DirectX::XMVECTOR positionVec = DirectX::XMLoadFloat3(&position);
 
 	lookAtVec = DirectX::XMVectorAdd(positionVec, lookAtVec);

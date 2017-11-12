@@ -20,7 +20,7 @@ public:
 
 	bool Init(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int indexCount, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat);
+	bool Render(ID3D11DeviceContext*, int vertexCount, int instanceCount, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat);
 
 
 private:
@@ -29,7 +29,7 @@ private:
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
 	bool SetShaderParameters(ID3D11DeviceContext*, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat);
-	void RenderShader(ID3D11DeviceContext*, int indexCount);
+	void RenderShader(ID3D11DeviceContext*, int vertexCount, int instanceCount);
 
 	struct MatrixBufferType
 	{
