@@ -244,12 +244,10 @@ const bool DXManager::Init(const int screenWidth,
 	{
 		return false;
 	}
-
 	m_pDeviceContext->RSSetState(m_pRasterState);
 
 
 	D3D11_VIEWPORT viewport;
-	// Setup the viewport for rendering.
 	viewport.Width = (float)screenWidth;
 	viewport.Height = (float)screenHeight;
 	viewport.MinDepth = 0.0f;

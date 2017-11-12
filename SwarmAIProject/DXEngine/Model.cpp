@@ -5,12 +5,12 @@
 */
 #include <fstream>
 
-#include "ModelManager.h"
+#include "Model.h"
 #include "Utilities.h"
 
 
 
-const bool ModelManager::Init(ID3D11Device* device, char* modelFilename)
+const bool Model::Init(ID3D11Device* device, char* modelFilename)
 {
 	if(!LoadModel(modelFilename))
 	{
@@ -24,24 +24,24 @@ const bool ModelManager::Init(ID3D11Device* device, char* modelFilename)
 	return true;
 }
 
-void ModelManager::Shutdown()
+void Model::Shutdown()
 {
 	ShutdownBuffers();
 	ReleaseModel();
 }
 
-void ModelManager::Render(ID3D11DeviceContext* deviceContext)
+void Model::Render(ID3D11DeviceContext* deviceContext)
 {
 	RenderBuffers(deviceContext);
 }
 
-int ModelManager::GetIndexCount()
+int Model::GetIndexCount()
 {
 	return m_indexCount;
 }
 
 
-bool ModelManager::LoadModel(char* filename)
+bool Model::LoadModel(char* filename)
 {
 	char input;
 	std::ifstream fileIn;
@@ -82,12 +82,12 @@ bool ModelManager::LoadModel(char* filename)
 	return true;
 }
 
-void ModelManager::ReleaseModel()
+void Model::ReleaseModel()
 {
 	m_pModelType.clear();
 }
 
-const bool ModelManager::InitBuffers(ID3D11Device* device)
+const bool Model::InitBuffers(ID3D11Device* device)
 {
 	VertexType* vertices = new VertexType[m_vertexCount];
 	if(!vertices)
@@ -156,7 +156,7 @@ const bool ModelManager::InitBuffers(ID3D11Device* device)
 	return true;
 }
 
-void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
 	unsigned int stride = sizeof(VertexType);
 	unsigned int offset = 0;
@@ -167,7 +167,7 @@ void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
 }
 
 
-void ModelManager::ShutdownBuffers()
+void Model::ShutdownBuffers()
 {
 	SafeRelease(m_pVertexBuffer);
 	SafeRelease(m_pIndexBuffer);

@@ -50,13 +50,13 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 
 
 	// Model Manager Object
-	m_pModelManager = std::make_unique<ModelManager>();
-	if(!m_pModelManager)
+	m_pModel = std::make_unique<Model>();
+	if(!m_pModel)
 	{
 		return false;
 	}
 
-	result = m_pModelManager->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TrianglePyrimidData.txt");
+	result = m_pModel->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TetrahedronData.txt");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialise the Model Manager", L"Error", MB_OK);
@@ -108,9 +108,9 @@ void Application::Shutdown()
 		m_pColShaderManager->Shutdown();
 	}
 
-	if(m_pModelManager)
+	if(m_pModel)
 	{
-		m_pModelManager->Shutdown();
+		m_pModel->Shutdown();
 	}
 
 	if(m_pInput)
@@ -198,12 +198,12 @@ bool Application::Render()
 	DirectX::XMMATRIX worldMat;
 
 	static float rotation = 0.f;
-
-	//rotation += (float)DirectX::XM_PI * 0.01f;
-	//if(rotation > 360.f)
-	//{
-	//	rotation -= 360.f;
-	//}
+	
+	rotation += (float)DirectX::XM_PI * 0.005f;
+	if(rotation > 360.f)
+	{
+		rotation -= 360.f;
+	}
 
 
 	m_pDXManager->BeginScene();
@@ -217,10 +217,10 @@ bool Application::Render()
 	// Rotate the cube
 	worldMat = DirectX::XMMatrixRotationY(rotation);
 
-	m_pModelManager->Render(m_pDXManager->GetDeviceContext());
+	m_pModel->Render(m_pDXManager->GetDeviceContext());
 
 	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(), 
-											  m_pModelManager->GetIndexCount(), 
+											  m_pModel->GetIndexCount(), 
 											  worldMat, viewMat, projMat);
 	if(!result)
 	{

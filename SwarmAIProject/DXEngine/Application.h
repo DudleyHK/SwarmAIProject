@@ -12,7 +12,7 @@
 #include "Camera.h"
 #include "InputManager.h"
 #include "ColourShaderManager.h"
-#include "ModelManager.h"
+#include "Model.h"
 #include "Position.h"
 
 
@@ -41,7 +41,7 @@ private:
 	std::unique_ptr<Camera> m_pCamera = nullptr;
 	std::unique_ptr<InputManager> m_pInput = nullptr;
 	std::unique_ptr<Position> m_pPosition = nullptr;
-	std::unique_ptr<ModelManager> m_pModelManager = nullptr;
+	std::unique_ptr<Model> m_pModel = nullptr;
 	std::unique_ptr<ColourShaderManager> m_pColShaderManager = nullptr;
 
 	

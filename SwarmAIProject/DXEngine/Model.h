@@ -11,11 +11,11 @@
 #include <DirectXMath.h>
 
 
-class ModelManager
+class Model
 {
 public:
-	ModelManager() = default;
-	~ModelManager() = default;
+	Model() = default;
+	~Model() = default;
 
 	const bool Init(ID3D11Device*, char* modelFilename);
 	void Shutdown();
@@ -32,6 +32,8 @@ private:
 	const bool InitBuffers(ID3D11Device*);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
+	int GetVertexCount();
+	int GetInstanceCount();
 
 	struct VertexType
 	{
@@ -39,7 +41,6 @@ private:
 		DirectX::XMFLOAT2 texCoords;
 		DirectX::XMFLOAT3 normals;
 	};
-
 	struct ModelType
 	{
 		float x;
@@ -53,9 +54,16 @@ private:
 		float ny; 
 		float nz;
 	};
+	struct InstanceType
+	{
+		DirectX::XMFLOAT3 position;
+	};
+
+
 
 	ID3D11Buffer* m_pVertexBuffer = nullptr;
 	ID3D11Buffer* m_pIndexBuffer = nullptr;
+
 	int m_vertexCount;
 	int m_indexCount;
 
