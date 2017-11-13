@@ -220,7 +220,8 @@ bool Application::Render()
 	m_pModel->Render(m_pDXManager->GetDeviceContext());
 
 	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(), 
-											  m_pModel->GetIndexCount(), 
+											  m_pModel->GetVertexCount(),
+											  m_pModel->GetInstanceCount(),
 											  worldMat, viewMat, projMat);
 	if(!result)
 	{
