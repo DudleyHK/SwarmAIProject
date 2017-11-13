@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 #include <memory>
 #include <vector>
@@ -13,16 +10,16 @@
 
 
 
-const bool DXManager::Init(const int screenWidth, 
-					 const int screenHeight,
-					 const HWND hwnd, 
-					 const bool fullscreen,
-					 const float screenDepth, 
-					 const float screenNear)
+const bool DXManager::Init(const int screenWidth,
+						   const int screenHeight,
+						   const HWND hwnd,
+						   const bool fullscreen,
+						   const float screenDepth,
+						   const float screenNear)
 {
 	HRESULT result;
-	
-	
+
+
 	IDXGIFactory* pFactory = nullptr;
 	IDXGIAdapter* pAdapter = nullptr;
 	IDXGIOutput*  pAdapterOutput = nullptr;
@@ -34,46 +31,46 @@ const bool DXManager::Init(const int screenWidth,
 
 	// Create and use a graphics interface factory.
 	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&pFactory);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
 
-	if (FAILED(pFactory->EnumAdapters(0, &pAdapter)))
+	if(FAILED(pFactory->EnumAdapters(0, &pAdapter)))
 	{
 		return false;
 	}
 
 	result = pAdapter->EnumOutputs(0, &pAdapterOutput);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
 
 	result = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
 
 	// Handle the display modes for the target monitor and video card combination.
 	DXGI_MODE_DESC* pDisplayModeList = new DXGI_MODE_DESC[numModes];
-	if (!pDisplayModeList)
+	if(!pDisplayModeList)
 	{
 		return false;
 	}
 
 	result = pAdapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, pDisplayModeList);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
-	
-	for (auto i = 0; i < numModes; i++)
+
+	for(auto i = 0; i < numModes; i++)
 	{
-		if (pDisplayModeList[i].Width == (unsigned int)screenWidth)
+		if(pDisplayModeList[i].Width == (unsigned int)screenWidth)
 		{
-			if (pDisplayModeList[i].Height == (unsigned int)screenHeight)
+			if(pDisplayModeList[i].Height == (unsigned int)screenHeight)
 			{
 				numerator = pDisplayModeList[i].RefreshRate.Numerator;
 				denominator = pDisplayModeList[i].RefreshRate.Denominator;
@@ -81,16 +78,16 @@ const bool DXManager::Init(const int screenWidth,
 		}
 	}
 
-	DXGI_ADAPTER_DESC adapterDesc = { 0 };
+	DXGI_ADAPTER_DESC adapterDesc = {0};
 	result = pAdapter->GetDesc(&adapterDesc);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
 
 	m_videoCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 	auto error = wcstombs_s(&stringLength, m_videoCardDescription, 128, adapterDesc.Description, 128);
-	if (error != 0)
+	if(error != 0)
 	{
 		return false;
 	}
@@ -102,17 +99,17 @@ const bool DXManager::Init(const int screenWidth,
 	SafeRelease(pFactory);
 
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	// If the project is in a debug build, enable the debug layer.
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+	#endif
 
 	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	swapChainDesc.BufferCount = 1;
-	swapChainDesc.BufferDesc.Width  = screenWidth;
+	swapChainDesc.BufferDesc.Width = screenWidth;
 	swapChainDesc.BufferDesc.Height = screenHeight;
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
@@ -122,7 +119,7 @@ const bool DXManager::Init(const int screenWidth,
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 
-	if (fullscreen)
+	if(fullscreen)
 	{
 		swapChainDesc.Windowed = false;
 	}
@@ -135,11 +132,11 @@ const bool DXManager::Init(const int screenWidth,
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = 0;
-	
+
 
 	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, &featureLevel, 1,
-		D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain, &m_pDevice, NULL, &m_pDeviceContext);
-	if (FAILED(result))
+										   D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain, &m_pDevice, NULL, &m_pDeviceContext);
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -147,13 +144,13 @@ const bool DXManager::Init(const int screenWidth,
 	// Setup the back buffer data.
 	ID3D11Texture2D* pBackBufferPtr = nullptr;
 	result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBufferPtr);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
 
 	result = m_pDevice->CreateRenderTargetView(pBackBufferPtr, NULL, &m_pRenderTargetView);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -178,7 +175,7 @@ const bool DXManager::Init(const int screenWidth,
 	depthBufferDesc.MiscFlags = 0;
 
 	result = m_pDevice->CreateTexture2D(&depthBufferDesc, NULL, &m_pDepthStencilBuffer);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -203,7 +200,7 @@ const bool DXManager::Init(const int screenWidth,
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
 	result = m_pDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -221,7 +218,7 @@ const bool DXManager::Init(const int screenWidth,
 
 	// Create the depth stencil view.
 	result = m_pDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -240,7 +237,7 @@ const bool DXManager::Init(const int screenWidth,
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
 	result = m_pDevice->CreateRasterizerState(&rasterDesc, &m_pRasterState);
-	if (FAILED(result))
+	if(FAILED(result))
 	{
 		return false;
 	}
@@ -292,9 +289,9 @@ void DXManager::Shutdown()
 	SafeRelease(m_pSwapChain);
 }
 
-/* 
+/*
 Create colour to clear back buffer to.
-Clear the back buffer and depth buffer. 
+Clear the back buffer and depth buffer.
 */
 void DXManager::BeginScene()
 {

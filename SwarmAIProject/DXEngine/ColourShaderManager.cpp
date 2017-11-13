@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 #include "ColourShaderManager.h"
 #include "Utilities.h"
@@ -22,14 +19,14 @@ void ColourShaderManager::Shutdown()
 	ShutdownShader();
 }
 
-bool ColourShaderManager::Render(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat)
+bool ColourShaderManager::Render(ID3D11DeviceContext* deviceContext, int indexCount, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat)
 {
 	auto result = SetShaderParameters(deviceContext, worldMat, viewMat, projMat);
 	if(!result)
 	{
 		return false;
 	}
-	RenderShader(deviceContext, vertexCount, instanceCount);
+	RenderShader(deviceContext, indexCount);
 	return true;
 }
 
@@ -55,7 +52,7 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	}
 
 	result = D3DCompileFromFile(psFilePath, NULL, NULL, "ColourPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-									 &pixelShaderBuffer, &errorMessage);
+								&pixelShaderBuffer, &errorMessage);
 	if(FAILED(result))
 	{
 		if(errorMessage)
@@ -83,7 +80,7 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 
 	// Now setup the layout of the data that goes into the shader.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -108,19 +105,11 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
 
-	polygonLayout[3].SemanticName = "TEXCOORD";
-	polygonLayout[3].SemanticIndex = 1;
-	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[3].InputSlot = 1;
-	polygonLayout[3].AlignedByteOffset = 0;
-	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
-	polygonLayout[3].InstanceDataStepRate = 1;
-
 
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
 
-	result = device->CreateInputLayout(polygonLayout, numElements, 
-									   vertexShaderBuffer->GetBufferPointer(), 
+	result = device->CreateInputLayout(polygonLayout, numElements,
+									   vertexShaderBuffer->GetBufferPointer(),
 									   vertexShaderBuffer->GetBufferSize(),
 									   &m_pLayout);
 	if(FAILED(result))
@@ -161,7 +150,7 @@ void ColourShaderManager::ShutdownShader()
 void ColourShaderManager::OutputShaderErrorMessage(ID3D10Blob* errorMsg, HWND hwnd, WCHAR* shaderFilePath)
 {
 	std::ofstream fout;
-	
+
 	char* compileErrors = compileErrors = (char*)(errorMsg->GetBufferPointer());
 	unsigned int bufferSize = bufferSize = errorMsg->GetBufferSize();
 	fout.open("shader-error.txt");
@@ -205,12 +194,12 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	return true;
 }
 
-void ColourShaderManager::RenderShader(ID3D11DeviceContext* deviceContext, int vertexCount, int instanceCount)
+void ColourShaderManager::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	deviceContext->IASetInputLayout(m_pLayout);
 
 	deviceContext->VSSetShader(m_pVertexShader, NULL, 0);
 	deviceContext->PSSetShader(m_pPixelShader, NULL, 0);
 
-	deviceContext->DrawInstanced(vertexCount, instanceCount, 0, 0);
+	deviceContext->DrawIndexed(indexCount, 0, 0);
 }

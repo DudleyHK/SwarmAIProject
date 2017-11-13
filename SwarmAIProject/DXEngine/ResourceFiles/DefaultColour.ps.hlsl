@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 
 struct PixelInputType

@@ -1,7 +1,4 @@
 /*
-
-
-https://www.braynzarsoft.net/viewtutorial/q16390-33-instancing-with-indexed-primitives
 */
 #include <fstream>
 
@@ -35,15 +32,9 @@ void Model::Render(ID3D11DeviceContext* deviceContext)
 	RenderBuffers(deviceContext);
 }
 
-
-int Model::GetVertexCount()
+int Model::GetIndexCount()
 {
-	return m_vertexCount;
-}
-
-int Model::GetInstanceCount()
-{
-	return m_instanceCount;
+	return m_indexCount;
 }
 
 
@@ -53,10 +44,10 @@ bool Model::LoadModel(char* filename)
 	std::ifstream fileIn;
 
 	fileIn.open(filename);
-	if(fileIn.fail()) 
+	if(fileIn.fail())
 		return false;
 
-	
+
 	fileIn.get(input);
 	while(input != ':')
 	{
@@ -65,7 +56,7 @@ bool Model::LoadModel(char* filename)
 
 	fileIn >> m_vertexCount;
 
-	//m_indexCount = m_vertexCount;
+	m_indexCount = m_vertexCount;
 	m_pModelType.reserve(m_vertexCount);
 
 	fileIn.get(input);
@@ -101,19 +92,19 @@ const bool Model::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	//unsigned long* indices = new unsigned long[m_instanceCount];
-	//if(!indices)
-	//{
-	//	return false;
-	//}
+	unsigned long* indices = new unsigned long[m_indexCount];
+	if(!indices)
+	{
+		return false;
+	}
 
 	for(auto i = 0; i < m_vertexCount; i++)
 	{
-		vertices[i].position  = {m_pModelType[i]->x,  m_pModelType[i]->y, m_pModelType[i]->z};
+		vertices[i].position = {m_pModelType[i]->x,  m_pModelType[i]->y, m_pModelType[i]->z};
 		vertices[i].texCoords = {m_pModelType[i]->tu, m_pModelType[i]->tv};
-		vertices[i].normals   = {m_pModelType[i]->nx, m_pModelType[i]->ny, m_pModelType[i]->nz};
+		vertices[i].normals = {m_pModelType[i]->nx, m_pModelType[i]->ny, m_pModelType[i]->nz};
 
-		//indices[i] = i;
+		indices[i] = i;
 	}
 
 	D3D11_BUFFER_DESC vertexBufferDesc = {0};
@@ -136,73 +127,45 @@ const bool Model::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	int m_instanceCount = 5;
-	InstanceType* instances = new InstanceType[m_instanceCount];
-	if(!instances) return false;
+	D3D11_BUFFER_DESC indexBufferDesc = {0};
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
 
-	// Set the positions for the instances.
-	instances[0].position = {0.0f, 0.0f, 0.0f};
-	instances[1].position = {0.0f, 0.0f, 0.0f};
-	instances[2].position = {0.0f, 0.0f, 0.0f};
-	instances[3].position = {0.0f, 0.0f, 0.0f}; 
-
-
-
-	D3D11_BUFFER_DESC instanceBufferDesc = {0};
-	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	instanceBufferDesc.ByteWidth = sizeof(unsigned long) * m_instanceCount;
-	instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	instanceBufferDesc.CPUAccessFlags = 0;
-	instanceBufferDesc.MiscFlags = 0;
-	instanceBufferDesc.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA instanceData;
-	instanceData.pSysMem = instances;
-	instanceData.SysMemPitch = 0;
-	instanceData.SysMemSlicePitch = 0;
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&instanceBufferDesc, &instanceData, &m_pInstanceBuffer);
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_pIndexBuffer);
 	if(FAILED(result))
 	{
 		return false;
 	}
 
 	SafeDeleteArray(vertices);
-	SafeDeleteArray(instances);
+	SafeDeleteArray(indices);
 
 	return true;
 }
 
 void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
-	unsigned int strides[2];
-	unsigned int offsets[2];
-	ID3D11Buffer* bufferPointers[2];
+	unsigned int stride = sizeof(VertexType);
+	unsigned int offset = 0;
 
-	// Set the buffer strides.
-	strides[0] = sizeof(VertexType);
-	strides[1] = sizeof(InstanceType);
-
-	// Set the buffer offsets.
-	offsets[0] = 0;
-	offsets[1] = 0;
-
-	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = m_pVertexBuffer;
-	bufferPointers[1] = m_pInstanceBuffer;
-
-
-	deviceContext->IASetVertexBuffers(0, 1, bufferPointers, strides, offsets);
+	deviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	deviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
-
 
 
 void Model::ShutdownBuffers()
 {
 	SafeRelease(m_pVertexBuffer);
-	SafeRelease(m_pInstanceBuffer);
+	SafeRelease(m_pIndexBuffer);
 }
-
-

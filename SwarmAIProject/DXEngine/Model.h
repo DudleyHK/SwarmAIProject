@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 #pragma once
 #include <memory>
@@ -21,8 +18,7 @@ public:
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
-	int GetVertexCount();
-	int GetInstanceCount();
+	int GetIndexCount();
 
 	bool LoadModel(char* filename);
 	void ReleaseModel();
@@ -33,14 +29,14 @@ private:
 	const bool InitBuffers(ID3D11Device*);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
-
+	int GetVertexCount();
+	int GetInstanceCount();
 
 	struct VertexType
 	{
 		DirectX::XMFLOAT3 position;
 		DirectX::XMFLOAT2 texCoords;
 		DirectX::XMFLOAT3 normals;
-		DirectX::XMFLOAT3 instancePosition;
 	};
 	struct ModelType
 	{
@@ -52,7 +48,7 @@ private:
 		float tv;
 
 		float nx;
-		float ny; 
+		float ny;
 		float nz;
 	};
 	struct InstanceType
@@ -63,10 +59,10 @@ private:
 
 
 	ID3D11Buffer* m_pVertexBuffer = nullptr;
-	ID3D11Buffer* m_pInstanceBuffer = nullptr;
+	ID3D11Buffer* m_pIndexBuffer = nullptr;
 
-	int m_vertexCount = 0;
-	int m_instanceCount = 0;
+	int m_vertexCount;
+	int m_indexCount;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
 

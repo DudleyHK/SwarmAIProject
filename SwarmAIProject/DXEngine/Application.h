@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 #pragma once
 
@@ -44,5 +41,5 @@ private:
 	std::unique_ptr<Model> m_pModel = nullptr;
 	std::unique_ptr<ColourShaderManager> m_pColShaderManager = nullptr;
 
-	
+
 };

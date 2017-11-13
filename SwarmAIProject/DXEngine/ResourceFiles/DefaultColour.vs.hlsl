@@ -1,7 +1,4 @@
 /*
-
-
-
 */
 
 cbuffer MatrixBuffer
@@ -16,7 +13,6 @@ struct VertexInputType
 	float4 position : POSITION;
 	float2 uv       : TEXCOORD0;
 	float4 normal   : NORMAL;
-	float3 instancePosition : TEXCOORD1;
 };
 
 struct PixelInputType
@@ -30,13 +26,8 @@ struct PixelInputType
 PixelInputType ColourVertexShader(VertexInputType input)
 {
 	PixelInputType output;
-	
-	input.position.w = 1.0f;
 
-	// Update the position of the vertices based on the data for this particular instance.
-	input.position.x += input.instancePosition.x;
-	input.position.y += input.instancePosition.y;
-	input.position.z += input.instancePosition.z;
+	input.position.w = 1.0f;
 
 	output.position = mul(input.position, worldMat);
 	output.position = mul(output.position, viewMat);
