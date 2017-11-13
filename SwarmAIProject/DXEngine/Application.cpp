@@ -196,11 +196,11 @@ bool Application::Render()
 
 	static float rotation = 0.f;
 
-	rotation += (float)DirectX::XM_PI * 0.005f;
-	if(rotation > 360.f)
-	{
-		rotation -= 360.f;
-	}
+	//rotation += (float)DirectX::XM_PI * 0.005f;
+	//if(rotation > 360.f)
+	//{
+	//	rotation -= 360.f;
+	//}
 
 
 	m_pDXManager->BeginScene();
@@ -212,12 +212,13 @@ bool Application::Render()
 	m_pDXManager->GetProjectionMatrix(projMat);
 
 	// Rotate the cube
-	worldMat = DirectX::XMMatrixRotationY(rotation);
+	//worldMat = DirectX::XMMatrixRotationY(rotation);
 
 	m_pModel->Render(m_pDXManager->GetDeviceContext());
 
 	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(),
-											  m_pModel->GetIndexCount(),
+											  m_pModel->GetVertexCount(),
+											  m_pModel->GetInstanceCount(),
 											  worldMat, viewMat, projMat);
 	if(!result)
 	{
