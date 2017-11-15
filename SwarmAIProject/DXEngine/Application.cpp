@@ -42,7 +42,7 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	{
 		return false;
 	}
-	m_pCamera->SetPosition({0.f, 0.f, -10.f});
+	m_pCamera->SetPosition({-100.f, 50.f, -50.f});
 
 
 

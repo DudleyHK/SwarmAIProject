@@ -104,7 +104,15 @@ const bool DXManager::Init(const int screenWidth,
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 	#endif
 
-	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0
+	};
+	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -134,7 +142,7 @@ const bool DXManager::Init(const int screenWidth,
 	swapChainDesc.Flags = 0;
 
 
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, &featureLevel, 1,
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, featureLevels, 1,
 										   D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain, &m_pDevice, NULL, &m_pDeviceContext);
 	if(FAILED(result))
 	{

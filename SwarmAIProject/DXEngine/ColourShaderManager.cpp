@@ -173,6 +173,9 @@ void ColourShaderManager::OutputShaderErrorMessage(ID3D10Blob* errorMsg, HWND hw
 	MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilePath, MB_OK);
 }
 
+
+
+DirectX::XMMATRIX m = DirectX::XMMatrixIdentity();
 bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat)
 {
 	// Transpose the matrices to prepare them for the shader.
@@ -190,9 +193,11 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 
 	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
 
+
 	dataPtr->world = worldMat;
 	dataPtr->view = viewMat;
 	dataPtr->projection = projMat;
+
 
 	deviceContext->Unmap(m_pMatrixBuffer, 0);
 	unsigned int bufferNumber = 0;

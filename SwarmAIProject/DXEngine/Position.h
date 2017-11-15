@@ -36,7 +36,7 @@ private:
 	DirectX::XMFLOAT3 m_position;
 	DirectX::XMFLOAT3 m_rotation;
 
-	float m_speedMultiplier = 7.5f;
+	float m_speedMultiplier = 20.f;
 	bool m_multiplierLock = false;
 
 	float m_horAcceleration = 1.f;

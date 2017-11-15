@@ -126,7 +126,7 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	auto z = 0.f;
 	for(auto i = 0; i < m_instanceCount; i++)
 	{
-		z += 1.f;
+		z += 5.f;
 
 		instances[i].position = DirectX::XMFLOAT3(x, y, z);
 	}
