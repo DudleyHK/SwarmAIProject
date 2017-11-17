@@ -13,7 +13,7 @@ struct VertexInputType
 	float4 position : POSITION;
 	float2 uv       : TEXCOORD0;
 	float4 normal   : NORMAL;
-	float3 instancePosition : TEXCOORD1;
+	matrix instanceWorldMat : INSTANCE;
 };
 
 struct PixelInputType
@@ -30,11 +30,8 @@ PixelInputType ColourVertexShader(VertexInputType input)
 
 	input.position.w = 1.0f;
 
-	input.position.x += input.instancePosition.x;
-	input.position.y += input.instancePosition.y;
-	input.position.z += input.instancePosition.z;
-
-	output.position = mul(input.position, worldMat);
+	input.instanceWorldMat = mul(worldMat, input.instanceWorldMat);
+	output.position = mul(input.position, input.instanceWorldMat);
 	output.position = mul(output.position, viewMat);
 	output.position = mul(output.position, projMat);
 

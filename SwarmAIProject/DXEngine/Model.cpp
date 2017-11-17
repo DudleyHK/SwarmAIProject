@@ -1,6 +1,7 @@
 /*
 */
 #include <fstream>
+#include <string>
 
 #include "Model.h"
 #include "Utilities.h"
@@ -111,14 +112,7 @@ const bool Model::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	m_instanceCount = 100000;
 
-	
-	InstanceType* instances = new InstanceType[m_instanceCount];
-	if(!instances)
-	{
-		return false;
-	}
 
 
 	auto x = 0.f;
@@ -127,23 +121,22 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	for(auto i = 0; i < m_instanceCount; i++)
 	{
 		z += 5.f;
+		auto tempMatrix = DirectX::XMMatrixTranslation(x, y, z);
 
-		instances[i].position = DirectX::XMFLOAT3(x, y, z);
+		m_pInstances.push_back(new InstanceType());
+		m_pInstances[i]->worldMatrix = DirectX::XMMatrixTranspose(tempMatrix);
 	}
 
-
-
-
 	D3D11_BUFFER_DESC instanceBufferDesc = {0};
-	instanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	instanceBufferDesc.ByteWidth = sizeof(InstanceType) * m_instanceCount;
 	instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	instanceBufferDesc.CPUAccessFlags = 0;
+	instanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	instanceBufferDesc.MiscFlags = 0;
 	instanceBufferDesc.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA instanceData;
-	instanceData.pSysMem = instances;
+	instanceData.pSysMem = *m_pInstances.data();
 	instanceData.SysMemPitch = 0;
 	instanceData.SysMemSlicePitch = 0;
 
@@ -155,13 +148,55 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	}
 
 	SafeDeleteArray(vertices);
-	SafeDeleteArray(instances);
 
 	return true;
 }
 
 void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
+	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
+	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	//	Disable GPU access to the vertex buffer data.
+	// Lock the buffer for writing	
+	auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if(FAILED(result))
+		return;
+
+
+// Foreach object 
+	    // Get its Transform matrix
+
+		// Get its unique color(if applicable)
+
+	//InstanceType* instanceType = new InstanceType();
+	//instanceType->worldMatrix = DirectX::XMMatrixIdentity();
+
+		// Store it in the Vert Buffer
+		//	Update the vertex buffer here.
+	InstanceType* dataPtr = (InstanceType*)mappedResource.pData;
+
+	// Unlock the buffer
+	//	Reenable GPU access to the vertex buffer data.
+	deviceContext->Unmap(m_pInstanceBuffer, 0);
+
+	//D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
+	//auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//if(FAILED(result))
+	//{
+	//	return;
+	//}
+	//InstanceType* dataPtr = (InstanceType*)mappedResource.pData;
+	//
+	//deviceContext->Unmap(m_pInstanceBuffer, 0);
+
+
+
+
+
+
+
+
+
 	unsigned int strides[2];
 	unsigned int offsets[2];
 	ID3D11Buffer* bufferPointers[2];

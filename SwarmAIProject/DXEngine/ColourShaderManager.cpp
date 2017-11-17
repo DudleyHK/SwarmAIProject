@@ -80,7 +80,7 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 
 	// Now setup the layout of the data that goes into the shader.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[4];
+	D3D11_INPUT_ELEMENT_DESC polygonLayout[7];
 	polygonLayout[0].SemanticName = "POSITION";
 	polygonLayout[0].SemanticIndex = 0;
 	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
@@ -105,13 +105,39 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	polygonLayout[2].InstanceDataStepRate = 0;
 
-	polygonLayout[3].SemanticName = "TEXCOORD";
-	polygonLayout[3].SemanticIndex = 1;
-	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	// Instance Matrix
+
+	polygonLayout[3].SemanticName = "INSTANCE";
+	polygonLayout[3].SemanticIndex = 0;
+	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	polygonLayout[3].InputSlot = 1;
-	polygonLayout[3].AlignedByteOffset = 0;
+	polygonLayout[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 	polygonLayout[3].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
 	polygonLayout[3].InstanceDataStepRate = 1;
+
+	polygonLayout[4].SemanticName = "INSTANCE";
+	polygonLayout[4].SemanticIndex = 1;
+	polygonLayout[4].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[4].InputSlot = 1;
+	polygonLayout[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[4].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[4].InstanceDataStepRate = 1;
+
+	polygonLayout[5].SemanticName = "INSTANCE";
+	polygonLayout[5].SemanticIndex = 2;
+	polygonLayout[5].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[5].InputSlot = 1;
+	polygonLayout[5].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[5].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[5].InstanceDataStepRate = 1;
+
+	polygonLayout[6].SemanticName = "INSTANCE";
+	polygonLayout[6].SemanticIndex = 3;
+	polygonLayout[6].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	polygonLayout[6].InputSlot = 1;
+	polygonLayout[6].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+	polygonLayout[6].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+	polygonLayout[6].InstanceDataStepRate = 1;
 
 
 	unsigned int numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
@@ -175,7 +201,6 @@ void ColourShaderManager::OutputShaderErrorMessage(ID3D10Blob* errorMsg, HWND hw
 
 
 
-DirectX::XMMATRIX m = DirectX::XMMatrixIdentity();
 bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext, DirectX::XMMATRIX& worldMat, DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat)
 {
 	// Transpose the matrices to prepare them for the shader.
@@ -183,7 +208,8 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	viewMat = DirectX::XMMatrixTranspose(viewMat);
 	projMat = DirectX::XMMatrixTranspose(projMat);
 
-	// create a resource which can be manipulated at run time is desired.
+
+	// create a resource which can be manipulated at run time if desired.
 	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
 	auto result = deviceContext->Map(m_pMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
@@ -192,7 +218,6 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	}
 
 	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
-
 
 	dataPtr->world = worldMat;
 	dataPtr->view = viewMat;

@@ -43,7 +43,7 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 		return false;
 	}
 	m_pCamera->SetPosition({-100.f, 50.f, -50.f});
-
+	//m_pCamera->SetPosition({0.f, 0.f, -10.f});
 
 
 	// Model Manager Object
@@ -196,12 +196,12 @@ bool Application::Render()
 
 	static float rotation = 0.f;
 
-	//rotation += (float)DirectX::XM_PI * 0.005f;
-	//if(rotation > 360.f)
-	//{
-	//	rotation -= 360.f;
-	//}
-
+	rotation += (float)DirectX::XM_PI * 0.005f;
+	if(rotation > 360.f)
+	{
+		rotation -= 360.f;
+	}
+	
 
 	m_pDXManager->BeginScene();
 
@@ -211,8 +211,10 @@ bool Application::Render()
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
 
-	// Rotate the cube
+	// Apply rotation
 	//worldMat = DirectX::XMMatrixRotationY(rotation);
+
+	//auto matrixArray = new DirectX::XMMATRIX[100000];
 
 	m_pModel->Render(m_pDXManager->GetDeviceContext());
 

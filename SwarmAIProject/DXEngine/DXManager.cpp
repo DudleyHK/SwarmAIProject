@@ -99,10 +99,10 @@ const bool DXManager::Init(const int screenWidth,
 	SafeRelease(pFactory);
 
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	// If the project is in a debug build, enable the debug layer.
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-	#endif
+#endif
 
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
