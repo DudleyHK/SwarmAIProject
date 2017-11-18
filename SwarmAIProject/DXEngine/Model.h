@@ -65,6 +65,7 @@ private:
 	int m_instanceCount = 100000;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
-	std::vector<InstanceType*> m_pInstances;
+	std::vector<InstanceType> tempInstanceType;
+	InstanceType* m_pInstances = nullptr;
 
 };

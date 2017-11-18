@@ -214,8 +214,6 @@ bool Application::Render()
 	// Apply rotation
 	//worldMat = DirectX::XMMatrixRotationY(rotation);
 
-	//auto matrixArray = new DirectX::XMMATRIX[100000];
-
 	m_pModel->Render(m_pDXManager->GetDeviceContext());
 
 	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(),

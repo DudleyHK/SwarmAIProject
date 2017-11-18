@@ -8,6 +8,8 @@
 
 
 
+
+
 const bool Model::Init(ID3D11Device* device, char* modelFilename)
 {
 	if(!LoadModel(modelFilename))
@@ -19,6 +21,15 @@ const bool Model::Init(ID3D11Device* device, char* modelFilename)
 	{
 		return false;
 	}
+
+	
+	tempInstanceType.reserve(m_instanceCount);
+	for(auto i = 0; i < m_instanceCount; i++)
+	{
+		tempInstanceType.push_back(InstanceType());
+	}
+
+
 	return true;
 }
 
@@ -26,6 +37,7 @@ void Model::Shutdown()
 {
 	ShutdownBuffers();
 	ReleaseModel();
+	SafeDeleteArray(m_pInstances);
 }
 
 void Model::Render(ID3D11DeviceContext* deviceContext)
@@ -112,7 +124,11 @@ const bool Model::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-
+	m_pInstances = new InstanceType[m_instanceCount];
+	if(!m_pInstances)
+	{
+		return false;
+	}
 
 
 	auto x = 0.f;
@@ -122,9 +138,7 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	{
 		z += 5.f;
 		auto tempMatrix = DirectX::XMMatrixTranslation(x, y, z);
-
-		m_pInstances.push_back(new InstanceType());
-		m_pInstances[i]->worldMatrix = DirectX::XMMatrixTranspose(tempMatrix);
+		m_pInstances[i].worldMatrix = DirectX::XMMatrixTranspose(tempMatrix);
 	}
 
 	D3D11_BUFFER_DESC instanceBufferDesc = {0};
@@ -136,7 +150,7 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	instanceBufferDesc.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA instanceData;
-	instanceData.pSysMem = *m_pInstances.data();
+	instanceData.pSysMem = m_pInstances;
 	instanceData.SysMemPitch = 0;
 	instanceData.SysMemSlicePitch = 0;
 
@@ -152,50 +166,50 @@ const bool Model::InitBuffers(ID3D11Device* device)
 	return true;
 }
 
+
+
 void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
-	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 	//	Disable GPU access to the vertex buffer data.
 	// Lock the buffer for writing	
+
+	static float rotation = 0.f;
+
+	for(auto i = 0; i < m_instanceCount; i++)
+	{
+		tempInstanceType[i].worldMatrix = m_pInstances[i].worldMatrix;
+	}
+	
+
+	rotation += (float)DirectX::XM_PI * 0.005f;
+	if(rotation > 360.f)
+	{
+		rotation -= 360.f;
+	}
+	tempInstanceType[2].worldMatrix = DirectX::XMMatrixRotationY(rotation);
+	
+
+	const InstanceType& first = tempInstanceType[0];
+
+
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
 	auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
+	{
 		return;
+	}
+	
+	memccpy(mappedResource.pData, &first, 0, sizeof(InstanceType));
 
 
-// Foreach object 
-	    // Get its Transform matrix
 
-		// Get its unique color(if applicable)
-
-	//InstanceType* instanceType = new InstanceType();
-	//instanceType->worldMatrix = DirectX::XMMatrixIdentity();
-
-		// Store it in the Vert Buffer
-		//	Update the vertex buffer here.
-	InstanceType* dataPtr = (InstanceType*)mappedResource.pData;
-
-	// Unlock the buffer
-	//	Reenable GPU access to the vertex buffer data.
 	deviceContext->Unmap(m_pInstanceBuffer, 0);
 
-	//D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-	//auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	//if(FAILED(result))
+	//for(auto i = 0; i < tmpInstanceType.size(); i++)
 	//{
-	//	return;
+	//	SafeDelete(tmpInstanceType[i]);
 	//}
-	//InstanceType* dataPtr = (InstanceType*)mappedResource.pData;
-	//
-	//deviceContext->Unmap(m_pInstanceBuffer, 0);
-
-
-
-
-
-
-
-
 
 	unsigned int strides[2];
 	unsigned int offsets[2];
