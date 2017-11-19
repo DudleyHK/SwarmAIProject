@@ -8,11 +8,11 @@
 #include <DirectXMath.h>
 
 
-class Model
+class ModelManager
 {
 public:
-	Model() = default;
-	~Model() = default;
+	ModelManager() = default;
+	~ModelManager() = default;
 
 	const bool Init(ID3D11Device*, char* modelFilename);
 	void Shutdown();
@@ -20,6 +20,7 @@ public:
 
 	int GetVertexCount();
 	int GetInstanceCount();
+	
 
 	bool LoadModel(char* filename);
 	void ReleaseModel();
@@ -62,10 +63,9 @@ private:
 	ID3D11Buffer* m_pInstanceBuffer = nullptr;
 
 	int m_vertexCount = 0;
-	int m_instanceCount = 100000;
+	int m_instanceCount = 100;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
-	std::vector<InstanceType> tempInstanceType;
-	InstanceType* m_pInstances = nullptr;
+	std::vector<InstanceType> m_Instances;
 
 };

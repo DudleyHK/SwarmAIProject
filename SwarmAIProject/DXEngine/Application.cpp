@@ -47,7 +47,7 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 
 
 	// Model Manager Object
-	m_pModel = std::make_unique<Model>();
+	m_pModel = std::make_unique<ModelManager>();
 	if(!m_pModel)
 	{
 		return false;
@@ -194,15 +194,6 @@ bool Application::Render()
 	DirectX::XMMATRIX projMat;
 	DirectX::XMMATRIX worldMat;
 
-	static float rotation = 0.f;
-
-	rotation += (float)DirectX::XM_PI * 0.005f;
-	if(rotation > 360.f)
-	{
-		rotation -= 360.f;
-	}
-	
-
 	m_pDXManager->BeginScene();
 
 	m_pCamera->Render();
@@ -210,9 +201,6 @@ bool Application::Render()
 	m_pCamera->GetViewMatrix(viewMat);
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
-
-	// Apply rotation
-	//worldMat = DirectX::XMMatrixRotationY(rotation);
 
 	m_pModel->Render(m_pDXManager->GetDeviceContext());
 

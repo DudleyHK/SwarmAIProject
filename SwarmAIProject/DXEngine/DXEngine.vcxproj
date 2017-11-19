@@ -168,7 +168,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelManager.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="SystemManager.cpp" />
   </ItemGroup>
@@ -178,7 +178,7 @@
     <ClInclude Include="DXManager.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelManager.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Utilities.h" />

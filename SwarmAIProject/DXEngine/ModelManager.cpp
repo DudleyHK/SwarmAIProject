@@ -3,14 +3,14 @@
 #include <fstream>
 #include <string>
 
-#include "Model.h"
+#include "ModelManager.h"
 #include "Utilities.h"
 
 
 
 
 
-const bool Model::Init(ID3D11Device* device, char* modelFilename)
+const bool ModelManager::Init(ID3D11Device* device, char* modelFilename)
 {
 	if(!LoadModel(modelFilename))
 	{
@@ -23,29 +23,29 @@ const bool Model::Init(ID3D11Device* device, char* modelFilename)
 	}
 
 	
-	tempInstanceType.reserve(m_instanceCount);
-	for(auto i = 0; i < m_instanceCount; i++)
-	{
-		tempInstanceType.push_back(InstanceType());
-	}
+	//tempInstanceType.reserve(m_instanceCount);
+	//for(auto i = 0; i < m_instanceCount; i++)
+	//{
+	//	tempInstanceType.push_back(InstanceType());
+	//}
 
 
 	return true;
 }
 
-void Model::Shutdown()
+void ModelManager::Shutdown()
 {
 	ShutdownBuffers();
 	ReleaseModel();
-	SafeDeleteArray(m_pInstances);
+	//SafeDeleteArray(m_pInstances);
 }
 
-void Model::Render(ID3D11DeviceContext* deviceContext)
+void ModelManager::Render(ID3D11DeviceContext* deviceContext)
 {
 	RenderBuffers(deviceContext);
 }
 
-bool Model::LoadModel(char* filename)
+bool ModelManager::LoadModel(char* filename)
 {
 	char input;
 	std::ifstream fileIn;
@@ -84,12 +84,12 @@ bool Model::LoadModel(char* filename)
 	return true;
 }
 
-void Model::ReleaseModel()
+void ModelManager::ReleaseModel()
 {
 	m_pModelType.clear();
 }
 
-const bool Model::InitBuffers(ID3D11Device* device)
+const bool ModelManager::InitBuffers(ID3D11Device* device)
 {
 	VertexType* vertices = new VertexType[m_vertexCount];
 	if(!vertices)
@@ -124,38 +124,33 @@ const bool Model::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
-	m_pInstances = new InstanceType[m_instanceCount];
-	if(!m_pInstances)
-	{
-		return false;
-	}
-
+	m_Instances.resize(m_instanceCount);
 
 	auto x = 0.f;
 	auto y = 0.f;
 	auto z = 0.f;
-	for(auto i = 0; i < m_instanceCount; i++)
+	for(auto i = 0; i < m_Instances.size(); i++)
 	{
 		z += 5.f;
-		auto tempMatrix = DirectX::XMMatrixTranslation(x, y, z);
-		m_pInstances[i].worldMatrix = DirectX::XMMatrixTranspose(tempMatrix);
+		auto worldMat = DirectX::XMMatrixTranslation(x, y, z);
+		m_Instances[i].worldMatrix = DirectX::XMMatrixTranspose(worldMat);
 	}
 
 	D3D11_BUFFER_DESC instanceBufferDesc = {0};
 	instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	instanceBufferDesc.ByteWidth = sizeof(InstanceType) * m_instanceCount;
+	instanceBufferDesc.ByteWidth = sizeof(InstanceType) * m_Instances.size();
 	instanceBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	instanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	instanceBufferDesc.MiscFlags = 0;
 	instanceBufferDesc.StructureByteStride = 0;
 
-	D3D11_SUBRESOURCE_DATA instanceData;
-	instanceData.pSysMem = m_pInstances;
-	instanceData.SysMemPitch = 0;
-	instanceData.SysMemSlicePitch = 0;
+	//D3D11_SUBRESOURCE_DATA instanceData;
+	//instanceData.pSysMem = m_Instances.data();
+	//instanceData.SysMemPitch = 0;
+	//instanceData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = device->CreateBuffer(&instanceBufferDesc, &instanceData, &m_pInstanceBuffer);
+	result = device->CreateBuffer(&instanceBufferDesc, 0, &m_pInstanceBuffer);
 	if(FAILED(result))
 	{
 		return false;
@@ -168,83 +163,87 @@ const bool Model::InitBuffers(ID3D11Device* device)
 
 
 
-void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
+void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
-	//	Disable GPU access to the vertex buffer data.
-	// Lock the buffer for writing	
-
-	static float rotation = 0.f;
-
-	for(auto i = 0; i < m_instanceCount; i++)
-	{
-		tempInstanceType[i].worldMatrix = m_pInstances[i].worldMatrix;
-	}
+	///////////////////////////////// MAP ////////////////////////////////
+	D3D11_MAPPED_SUBRESOURCE mappedData;
+	deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+	InstanceType* dataView = reinterpret_cast<InstanceType*>(mappedData.pData);
 	
-
-	rotation += (float)DirectX::XM_PI * 0.005f;
-	if(rotation > 360.f)
+	for(auto i = 0; i < m_Instances.size(); i++)
 	{
-		rotation -= 360.f;
+		dataView[i] = m_Instances[i];
 	}
-	tempInstanceType[2].worldMatrix = DirectX::XMMatrixRotationY(rotation);
-	
-
-	const InstanceType& first = tempInstanceType[0];
-
-
-
-	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-	auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return;
-	}
-	
-	memccpy(mappedResource.pData, &first, 0, sizeof(InstanceType));
-
-
-
 	deviceContext->Unmap(m_pInstanceBuffer, 0);
 
-	//for(auto i = 0; i < tmpInstanceType.size(); i++)
-	//{
-	//	SafeDelete(tmpInstanceType[i]);
-	//}
 
-	unsigned int strides[2];
-	unsigned int offsets[2];
-	ID3D11Buffer* bufferPointers[2];
-
-	// Set the buffer strides.
-	strides[0] = sizeof(VertexType);
-	strides[1] = sizeof(InstanceType);
-
-	// Set the buffer offsets.
-	offsets[0] = 0;
-	offsets[1] = 0;
-
-	// Set the array of pointers to the vertex and instance buffers.
-	bufferPointers[0] = m_pVertexBuffer;
-	bufferPointers[1] = m_pInstanceBuffer;
+	//////////////////// RENDER BUFFERS //////////////////////////////////////
+	unsigned int strides[2] = {sizeof(VertexType), sizeof(InstanceType)};
+	unsigned int offsets[2] = {0, 0};
+	ID3D11Buffer* bufferPointers[2] = {m_pVertexBuffer, m_pInstanceBuffer};
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
 	deviceContext->IASetVertexBuffers(0, 2, bufferPointers, strides, offsets);
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-int Model::GetVertexCount()
+int ModelManager::GetVertexCount()
 {
 	return m_vertexCount;
 }
 
-int Model::GetInstanceCount()
+int ModelManager::GetInstanceCount()
 {
 	return m_instanceCount;
 }
 
 
-void Model::ShutdownBuffers()
+void ModelManager::ShutdownBuffers()
 {
 	SafeRelease(m_pVertexBuffer);
 	SafeRelease(m_pInstanceBuffer);
 }
+
+
+
+
+//	Disable GPU access to the vertex buffer data.
+// Lock the buffer for writing	
+
+//static float rotation = 0.f;
+
+//for(auto i = 0; i < m_instanceCount; i++)
+//{
+//	tempInstanceType[i].worldMatrix = m_pInstances[i].worldMatrix;
+//}
+//
+
+//rotation += (float)DirectX::XM_PI * 0.005f;
+//if(rotation > 360.f)
+//{
+//	rotation -= 360.f;
+//}
+//tempInstanceType[2].worldMatrix = DirectX::XMMatrixRotationY(rotation);
+//
+
+//const InstanceType& first = tempInstanceType[0];
+
+
+
+//D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
+//auto result = deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+//if(FAILED(result))
+//{
+//	return;
+//}
+//
+//memccpy(mappedResource.pData, &first, 0, sizeof(InstanceType));
+
+
+
+//deviceContext->Unmap(m_pInstanceBuffer, 0);
+
+//for(auto i = 0; i < tmpInstanceType.size(); i++)
+//{
+//	SafeDelete(tmpInstanceType[i]);
+//}
