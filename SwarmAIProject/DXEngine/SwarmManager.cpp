@@ -33,8 +33,6 @@ void SwarmManager::Update(std::vector<DirectX::XMMATRIX>&& instanceMatrices)
 
 	SetGlobalBestDistance();
 	CalculateParticlePhysics();
-
-
 }
 
 std::vector<DirectX::XMMATRIX> SwarmManager::GetWorldMatrices()
@@ -49,7 +47,7 @@ void SwarmManager::SetGlobalBestDistance()
 	for(auto i = 0; i < m_Particles.size(); i++)
 	{
 		auto particle = m_Particles[i].get();
-		auto particleDist = CalculateDistance(particle->m_position, GOAL_POSITION);
+		auto particleDist = CalculateDistance(particle->m_position, m_globalBestPosition);
 		if(particleDist < m_globalBestDistance)
 		{
 			m_globalBestDistance = particleDist;
@@ -66,7 +64,7 @@ void SwarmManager::CalculateParticlePhysics()
 	for(auto i = 0; i < m_Particles.size(); i++)
 	{
 		auto particle = m_Particles[i].get();
-		auto direction = CalculateDirection(particle->m_position, GOAL_POSITION);
+		auto direction = CalculateDirection(particle->m_position, m_globalBestPosition);
 		auto normalisedDirection = NormaliseFloat3(direction);
 
 		auto force = ComputeForce(normalisedDirection, particle->m_mass);

@@ -57,7 +57,7 @@ private:
 	std::vector<DirectX::XMMATRIX> m_instanceMatrices;
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 
-	const DirectX::XMFLOAT3 GOAL_POSITION = {100, 100, 100};
+	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 0.f};
 
 	float m_globalBestDistance = 0.f;
 	DirectX::XMFLOAT3 m_globalBestPosition = {0.f, 0.f, 0.f};

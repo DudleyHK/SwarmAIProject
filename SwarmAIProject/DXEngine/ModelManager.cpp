@@ -56,7 +56,7 @@ std::vector<DirectX::XMMATRIX> ModelManager::GetInstancesWorld()
 }
 
 
-void ModelManager::SetInstancesWorld(std::vector<DirectX::XMMATRIX>&& worldMatrices)
+void ModelManager::SetInstancesWorld(std::vector<DirectX::XMMATRIX> worldMatrices)
 {
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
@@ -186,6 +186,17 @@ const bool ModelManager::InitBuffers(ID3D11Device* device)
 
 void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
+	static float rotation = 0.f;
+
+	rotation += (float)DirectX::XM_PI * 0.005f;
+	if(rotation > 360.f)
+	{
+		rotation -= 360.f;
+	}
+	m_Instances[1].worldMatrix = DirectX::XMMatrixRotationY(rotation);
+	
+
+
 	///////////////////////////////// MAP ////////////////////////////////
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
