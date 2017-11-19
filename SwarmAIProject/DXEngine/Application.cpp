@@ -1,5 +1,12 @@
-/*
+﻿/*
+
+
+
 */
+#include <algorithm>
+#include <time.h>
+
+
 #include "Application.h"
 #include "Utilities.h"
 
@@ -44,20 +51,31 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	}
 	m_pCamera->SetPosition({0.f, 0.f, -10.f});
 
-
-
-	// Model Manager Object
-	m_pModel = std::make_unique<Model>();
-	if(!m_pModel)
+	
+	float x = 0.f;
+	float y = 0.f;
+	float z = 0.f;
+	for(auto i = 0; i < 100; i++)
 	{
-		return false;
-	}
+		// Model Manager Object
+		m_ModelList.push_back(std::make_unique<Model>());
+		if(!m_ModelList[i])
+		{
+			return false;
+		}
 
-	result = m_pModel->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TetrahedronData.txt");
-	if(!result)
-	{
-		MessageBox(hwnd, L"Could not initialise the Model Manager", L"Error", MB_OK);
-		return false;
+		result = m_ModelList[i]->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TetrahedronData.txt");
+		if(!result)
+		{
+			MessageBox(hwnd, L"Could not initialise the Model Manager", L"Error", MB_OK);
+			return false;
+		}
+
+
+		z += 5.f;
+		m_ModelList[i]->SetPosition({x, y, z});
+		auto worldMatrix = DirectX::XMMatrixTranslation(x, y, z);
+		m_ModelList[i]->SetWorldMatrix(worldMatrix);
 	}
 
 	// Colour Shader Object
@@ -87,7 +105,7 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	m_pPosition->SetPosition(m_pCamera->GetPosition());
 
 
-
+	//srand((unsigned int)0);
 
 	return true;
 }
@@ -105,10 +123,14 @@ void Application::Shutdown()
 		m_pColShaderManager->Shutdown();
 	}
 
-	if(m_pModel)
+	for(auto& elem : m_ModelList)
 	{
-		m_pModel->Shutdown();
+		if(elem)
+		{
+			elem->Shutdown();
+		}
 	}
+
 
 	if(m_pInput)
 	{
@@ -116,6 +138,82 @@ void Application::Shutdown()
 	}
 
 }
+
+void Application::UpdateSwarm()
+{
+	for(auto i = 0; i < m_ModelList.size();i++)
+	{
+		// update the particles best position
+		auto distance = CalculateDistance(m_ModelList[i].get());
+	}
+}
+
+
+
+//if(distance < m_globalBestDistance)
+//{
+//	m_globalBestDistance = distance;
+//	m_globalBestPosition = modelPos;
+//}
+
+
+float Application::CalculateDistance(Model* model)
+{
+	auto modelPos = model->GetPosition();
+
+	float x = (modelPos.x - m_goalPosition.x);
+	float y = (modelPos.y - m_goalPosition.y);
+	float z = (modelPos.z - m_goalPosition.z);
+
+	return (x * 2) + (y * 2) + (z * 2);
+}
+
+
+
+DirectX::XMFLOAT3 Application::CalculateParticleVelocity(Model* model)
+{
+	//for each particle i = 1, ..., S do
+	//	for each dimension d = 1, ..., n do
+	//		Pick random numbers : rp, rg ~U(0, 1)
+	//		Update the particle's velocity: vi,d ← ω vi,d + φp rp (pi,d-xi,d) + φg rg (gd-xi,d)
+	//		Update the particle's position: xi ← xi + vi
+
+	return DirectX::XMFLOAT3();
+}
+
+/*
+	NOTE: Before this run the particle optimisation code
+
+	Render each particle using their world matrix.
+*/
+bool Application::RenderSwarm(DirectX::XMMATRIX& viewMat, DirectX::XMMATRIX& projMat)
+{
+	for(auto i = 0; i < m_ModelList.size(); i++)
+	{
+		auto model = m_ModelList[i].get();
+		DirectX::XMMATRIX modelWorld = model->GetWorldMatrix();
+
+
+		//auto position = m_ModelList[i]->GetPosition();
+		//if(i == 2)
+		//{
+		//	m_ModelList[i]->SetPosition({position.x + 0.1f, position.y, position.z});
+		//	modelWorld = DirectX::XMMatrixTranslation(position.x + 0.1f, position.y, position.z);
+		//}
+		  
+		model->Render(m_pDXManager->GetDeviceContext());
+		auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(),
+												  model->GetIndexCount(),
+												  modelWorld, viewMat, projMat);
+		if(!result)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
 
 bool Application::HandleInput(float frameTime)
 {
@@ -174,7 +272,6 @@ bool Application::Update()
 	{
 		return false;
 	}
-
 	// Check if the user pressed escape and wants to exit the application.
 	if(m_pInput->IsEscapePressed() == true)
 	{
@@ -183,6 +280,12 @@ bool Application::Update()
 
 	auto result = HandleInput(0.01f);
 	if(!result) return false;
+
+
+	// Update the Paricle Swarm.
+	UpdateSwarm();
+
+
 
 	return true;
 }
@@ -194,15 +297,6 @@ bool Application::Render()
 	DirectX::XMMATRIX projMat;
 	DirectX::XMMATRIX worldMat;
 
-	static float rotation = 0.f;
-
-	rotation += (float)DirectX::XM_PI * 0.005f;
-	if(rotation > 360.f)
-	{
-		rotation -= 360.f;
-	}
-
-
 	m_pDXManager->BeginScene();
 
 	m_pCamera->Render();
@@ -211,20 +305,12 @@ bool Application::Render()
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
 
-	// Rotate the cube
-	worldMat = DirectX::XMMatrixRotationY(rotation);
 
-	m_pModel->Render(m_pDXManager->GetDeviceContext());
-
-	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(),
-											  m_pModel->GetIndexCount(),
-											  worldMat, viewMat, projMat);
-	if(!result)
+	if(!RenderSwarm(viewMat, projMat))
 	{
 		return false;
 	}
-
-
+	
 	m_pDXManager->EndScene();
 	return true;
 }

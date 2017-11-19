@@ -180,6 +180,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Position.h" />
+    <ClInclude Include="Rigidbody.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Utilities.h" />
   </ItemGroup>

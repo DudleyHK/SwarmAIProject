@@ -18,6 +18,9 @@ const bool Model::Init(ID3D11Device* device, char* modelFilename)
 	{
 		return false;
 	}
+
+	m_pRigidbody = std::make_unique<Rigidbody>();
+
 	return true;
 }
 
@@ -35,6 +38,46 @@ void Model::Render(ID3D11DeviceContext* deviceContext)
 int Model::GetIndexCount()
 {
 	return m_indexCount;
+}
+
+DirectX::XMMATRIX& Model::GetWorldMatrix()
+{
+	return m_worldMat;
+}
+
+void Model::SetWorldMatrix(DirectX::XMMATRIX& worldMat)
+{
+	m_worldMat = worldMat;
+}
+
+DirectX::XMFLOAT3 Model::GetPosition()
+{
+	return m_position;
+}
+
+void Model::SetPosition(DirectX::XMFLOAT3 position)
+{
+	m_position = position;
+}
+
+DirectX::XMFLOAT3 Model::GetBest()
+{
+	return m_best;
+}
+
+void Model::SetBest(DirectX::XMFLOAT3 pBest)
+{
+	m_best = pBest;
+}
+
+DirectX::XMFLOAT3 Model::GetGlobalBest()
+{
+	return m_globalBest;
+}
+
+void Model::SetGlobalBest(DirectX::XMFLOAT3 gBest)
+{
+	m_globalBest = gBest;
 }
 
 

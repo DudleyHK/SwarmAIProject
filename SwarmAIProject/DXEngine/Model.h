@@ -7,6 +7,8 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 
+#include "Rigidbody.h"
+
 
 class Model
 {
@@ -18,10 +20,24 @@ public:
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
-	int GetIndexCount();
+	int GetIndexCount();	
+
+	DirectX::XMMATRIX& GetWorldMatrix();
+	void SetWorldMatrix(DirectX::XMMATRIX&);
+
+	DirectX::XMFLOAT3 GetPosition();
+	void SetPosition(DirectX::XMFLOAT3);
+
+	DirectX::XMFLOAT3 GetBest();
+	void SetBest(DirectX::XMFLOAT3);
+
+	DirectX::XMFLOAT3 GetGlobalBest();
+	void SetGlobalBest(DirectX::XMFLOAT3);
+
 
 	bool LoadModel(char* filename);
 	void ReleaseModel();
+
 
 
 
@@ -29,8 +45,6 @@ private:
 	const bool InitBuffers(ID3D11Device*);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
-	int GetVertexCount();
-	int GetInstanceCount();
 
 	struct VertexType
 	{
@@ -56,8 +70,6 @@ private:
 		DirectX::XMFLOAT3 position;
 	};
 
-
-
 	ID3D11Buffer* m_pVertexBuffer = nullptr;
 	ID3D11Buffer* m_pIndexBuffer = nullptr;
 
@@ -65,5 +77,13 @@ private:
 	int m_indexCount;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
+
+	DirectX::XMMATRIX m_worldMat;
+	DirectX::XMFLOAT3 m_position;
+	DirectX::XMFLOAT3 m_best;
+	DirectX::XMFLOAT3 m_globalBest;
+
+	std::unique_ptr<Rigidbody> m_pRigidbody = nullptr;
+
 
 };
