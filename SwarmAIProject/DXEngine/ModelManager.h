@@ -21,6 +21,8 @@ public:
 	int GetVertexCount();
 	int GetInstanceCount();
 	
+	std::vector<DirectX::XMMATRIX> GetInstancesWorld();
+	void SetInstancesWorld(std::vector<DirectX::XMMATRIX>&&);
 
 	bool LoadModel(char* filename);
 	void ReleaseModel();

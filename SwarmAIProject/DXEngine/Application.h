@@ -11,6 +11,7 @@
 #include "ColourShaderManager.h"
 #include "ModelManager.h"
 #include "Position.h"
+#include "SwarmManager.h"
 
 
 const bool  g_FULL_SCREEN = false;
@@ -38,8 +39,8 @@ private:
 	std::unique_ptr<Camera> m_pCamera = nullptr;
 	std::unique_ptr<InputManager> m_pInput = nullptr;
 	std::unique_ptr<Position> m_pPosition = nullptr;
-	std::unique_ptr<ModelManager> m_pModel = nullptr;
+	std::unique_ptr<ModelManager> m_pModelManager = nullptr;
 	std::unique_ptr<ColourShaderManager> m_pColShaderManager = nullptr;
-
+	std::unique_ptr<SwarmManager> m_pSwarmManager = nullptr;
 
 };

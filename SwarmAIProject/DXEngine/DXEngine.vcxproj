@@ -170,6 +170,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelManager.cpp" />
     <ClCompile Include="Position.cpp" />
+    <ClCompile Include="SwarmManager.cpp" />
     <ClCompile Include="SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +181,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="Position.h" />
+    <ClInclude Include="SwarmManager.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="Utilities.h" />
   </ItemGroup>

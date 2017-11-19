@@ -47,13 +47,13 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 
 
 	// Model Manager Object
-	m_pModel = std::make_unique<ModelManager>();
-	if(!m_pModel)
+	m_pModelManager = std::make_unique<ModelManager>();
+	if(!m_pModelManager)
 	{
 		return false;
 	}
 
-	result = m_pModel->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TetrahedronData.txt");
+	result = m_pModelManager->Init(m_pDXManager->GetDevice(), "../DXEngine/ResourceFiles/TetrahedronData.txt");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialise the Model Manager", L"Error", MB_OK);
@@ -86,7 +86,10 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	}
 	m_pPosition->SetPosition(m_pCamera->GetPosition());
 
-
+	
+	m_pSwarmManager = std::make_unique<SwarmManager>();
+	if(!m_pSwarmManager) return false;
+	m_pSwarmManager->Init(m_pModelManager->GetInstanceCount());
 
 
 	return true;
@@ -105,9 +108,9 @@ void Application::Shutdown()
 		m_pColShaderManager->Shutdown();
 	}
 
-	if(m_pModel)
+	if(m_pModelManager)
 	{
-		m_pModel->Shutdown();
+		m_pModelManager->Shutdown();
 	}
 
 	if(m_pInput)
@@ -184,6 +187,10 @@ bool Application::Update()
 	auto result = HandleInput(0.01f);
 	if(!result) return false;
 
+	// Update the swarm and pass the world matrices back to the ModelManager
+	m_pSwarmManager->Update(m_pModelManager->GetInstancesWorld());
+	m_pModelManager->SetInstancesWorld(m_pSwarmManager->GetWorldMatrices());
+
 	return true;
 }
 
@@ -202,11 +209,11 @@ bool Application::Render()
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
 
-	m_pModel->Render(m_pDXManager->GetDeviceContext());
+	m_pModelManager->Render(m_pDXManager->GetDeviceContext());
 
 	auto result = m_pColShaderManager->Render(m_pDXManager->GetDeviceContext(),
-											  m_pModel->GetVertexCount(),
-											  m_pModel->GetInstanceCount(),
+											  m_pModelManager->GetVertexCount(),
+											  m_pModelManager->GetInstanceCount(),
 											  worldMat, viewMat, projMat);
 	if(!result)
 	{

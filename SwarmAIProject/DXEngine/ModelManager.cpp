@@ -45,6 +45,27 @@ void ModelManager::Render(ID3D11DeviceContext* deviceContext)
 	RenderBuffers(deviceContext);
 }
 
+std::vector<DirectX::XMMATRIX> ModelManager::GetInstancesWorld()
+{
+	std::vector<DirectX::XMMATRIX> worldMatrices;
+	for(auto i = 0; i < m_Instances.size(); i++)
+	{
+		worldMatrices.push_back(m_Instances[i].worldMatrix);
+	}
+	return worldMatrices;
+}
+
+
+void ModelManager::SetInstancesWorld(std::vector<DirectX::XMMATRIX>&& worldMatrices)
+{
+	for(auto i = 0; i < m_Instances.size(); i++)
+	{
+		m_Instances[i].worldMatrix = worldMatrices[i];
+	}
+}
+
+
+
 bool ModelManager::LoadModel(char* filename)
 {
 	char input;
