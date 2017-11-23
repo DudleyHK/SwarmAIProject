@@ -13,6 +13,7 @@
 const bool SwarmManager::Init(int instanceCount)
 {
 	m_Particles.resize(instanceCount);
+	m_instanceCount = instanceCount;
 
 	// give each particle a random veloctiy and position;
 	for(auto& particle : m_Particles)
@@ -27,7 +28,7 @@ const bool SwarmManager::Init(int instanceCount)
 	return false;
 }
 
-void SwarmManager::Update(std::vector<DirectX::XMMATRIX>&& instanceMatrices)
+void SwarmManager::Update(DirectX::XMMATRIX* instanceMatrices)
 {
 	m_instanceMatrices = instanceMatrices;
 
@@ -35,7 +36,7 @@ void SwarmManager::Update(std::vector<DirectX::XMMATRIX>&& instanceMatrices)
 	CalculateParticlePhysics();
 }
 
-std::vector<DirectX::XMMATRIX> SwarmManager::GetWorldMatrices()
+DirectX::XMMATRIX* SwarmManager::GetWorldMatrices()
 {
 	return m_instanceMatrices;
 }
@@ -44,7 +45,7 @@ std::vector<DirectX::XMMATRIX> SwarmManager::GetWorldMatrices()
 // Calculate global best position 
 void SwarmManager::SetGlobalBestDistance()
 {
-	for(auto i = 0; i < m_Particles.size(); i++)
+	for(auto i = 0; i < m_instanceCount; i++)
 	{
 		auto particle = m_Particles[i].get();
 		auto particleDist = CalculateDistance(particle->m_position, m_globalBestPosition);
@@ -57,11 +58,11 @@ void SwarmManager::SetGlobalBestDistance()
 }
 
 
-
+// Run this through the profiler
 void SwarmManager::CalculateParticlePhysics()
 {
 	// Calculate Particle Physics
-	for(auto i = 0; i < m_Particles.size(); i++)
+	for(auto i = 0; i < m_instanceCount; i++)
 	{
 		auto particle = m_Particles[i].get();
 		auto direction = CalculateDirection(particle->m_position, m_globalBestPosition);
@@ -86,19 +87,19 @@ void SwarmManager::CalculateParticlePhysics()
 
 void SwarmManager::UpdateWorldMatrix(const Particle* particle, const int index)
 {
-	auto worldMatrix = m_instanceMatrices[index];
-	auto pPos = particle->m_position;
-
-	//DirectX::XMVECTOR scale;
-	//DirectX::XMVECTOR rotation;
-	//DirectX::XMVECTOR translation;
+	//auto worldMatrix = m_instanceMatrices[index];
+	//auto pPos = particle->m_position;
 	//
-	//DirectX::XMMatrixDecompose(&scale, &rotation, &translation, worldMatrix);
-
-
-	auto transMat = DirectX::XMMatrixTranslation(pPos.x, pPos.y, pPos.z);
-	worldMatrix = DirectX::XMMatrixTranspose(transMat);
-	int i = 0;
+	////DirectX::XMVECTOR scale;
+	////DirectX::XMVECTOR rotation;
+	////DirectX::XMVECTOR translation;
+	////
+	////DirectX::XMMatrixDecompose(&scale, &rotation, &translation, worldMatrix);
+	//
+	//
+	//auto transMat = DirectX::XMMatrixTranslation(pPos.x, pPos.y, pPos.z);
+	//worldMatrix = DirectX::XMMatrixTranspose(transMat);
+	//int i = 0;
 }
 
 
@@ -126,7 +127,7 @@ const float SwarmManager::CalculateDistance(const DirectX::XMFLOAT3 a, const Dir
 	float y = (b.y - a.y);
 	float z = (b.z - a.z);
 
-	return (x * 2) + (y * 2) + (z * 2);
+	return sqrtf((x * x) + (y * y) + (z * z)); 
 }
 
 

@@ -28,7 +28,7 @@ const bool ModelManager::Init(ID3D11Device* device, char* modelFilename)
 	//{
 	//	tempInstanceType.push_back(InstanceType());
 	//}
-
+	worldMatrices.resize(m_instanceCount);
 
 	return true;
 }
@@ -45,18 +45,17 @@ void ModelManager::Render(ID3D11DeviceContext* deviceContext)
 	RenderBuffers(deviceContext);
 }
 
-std::vector<DirectX::XMMATRIX> ModelManager::GetInstancesWorld()
+DirectX::XMMATRIX* ModelManager::GetInstancesWorld()
 {
-	std::vector<DirectX::XMMATRIX> worldMatrices;
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
-		worldMatrices.push_back(m_Instances[i].worldMatrix);
+		worldMatrices[i] = m_Instances[i].worldMatrix;
 	}
-	return worldMatrices;
+	return worldMatrices.data();
 }
 
 
-void ModelManager::SetInstancesWorld(std::vector<DirectX::XMMATRIX> worldMatrices)
+void ModelManager::SetInstancesWorld(DirectX::XMMATRIX* worldMatrices)
 {
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
@@ -177,37 +176,37 @@ const bool ModelManager::InitBuffers(ID3D11Device* device)
 		return false;
 	}
 
+
+
+
 	SafeDeleteArray(vertices);
 
 	return true;
 }
 
 
-
 void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
 {
-	static float rotation = 0.f;
-
-	rotation += (float)DirectX::XM_PI * 0.005f;
-	if(rotation > 360.f)
-	{
-		rotation -= 360.f;
-	}
-	m_Instances[1].worldMatrix = DirectX::XMMatrixRotationY(rotation);
+	//static float rotation = 0.f;
+	//
+	//rotation += (float)DirectX::XM_PI * 0.005f;
+	//if(rotation > 360.f)
+	//{
+	//	rotation -= 360.f;
+	//}
+	//m_Instances[1].worldMatrix = DirectX::XMMatrixRotationY(rotation);
 	
-
 
 	///////////////////////////////// MAP ////////////////////////////////
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	deviceContext->Map(m_pInstanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
 	InstanceType* dataView = reinterpret_cast<InstanceType*>(mappedData.pData);
-	
+
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
 		dataView[i] = m_Instances[i];
 	}
 	deviceContext->Unmap(m_pInstanceBuffer, 0);
-
 
 	//////////////////// RENDER BUFFERS //////////////////////////////////////
 	unsigned int strides[2] = {sizeof(VertexType), sizeof(InstanceType)};

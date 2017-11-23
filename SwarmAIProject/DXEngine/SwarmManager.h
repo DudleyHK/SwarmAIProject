@@ -33,8 +33,8 @@ public:
 	~SwarmManager() = default;
 
 	const bool Init(int instanceCount);
-	void Update(std::vector<DirectX::XMMATRIX>&& instanceMatrices);
-	std::vector<DirectX::XMMATRIX> GetWorldMatrices();
+	void Update(DirectX::XMMATRIX* instanceMatrices);
+	DirectX::XMMATRIX* GetWorldMatrices();
 
 
 
@@ -54,11 +54,12 @@ private:
 
 
 
-	std::vector<DirectX::XMMATRIX> m_instanceMatrices;
+	DirectX::XMMATRIX* m_instanceMatrices;
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 
 	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 0.f};
 
+	float m_instanceCount;
 	float m_globalBestDistance = 0.f;
 	DirectX::XMFLOAT3 m_globalBestPosition = {0.f, 0.f, 0.f};
 };
