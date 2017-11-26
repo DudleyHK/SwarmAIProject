@@ -169,6 +169,7 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelManager.cpp" />
+    <ClCompile Include="Particle.cpp" />
     <ClCompile Include="Position.cpp" />
     <ClCompile Include="SwarmManager.cpp" />
     <ClCompile Include="SystemManager.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="ModelManager.h" />
+    <ClInclude Include="Particle.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="SwarmManager.h" />
     <ClInclude Include="SystemManager.h" />

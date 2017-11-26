@@ -21,6 +21,15 @@ public:
 	int GetVertexCount();
 	int GetInstanceCount();
 	
+	// vector rvalue *move* ctor // Games Engine Architecture pp. 110
+	//template <typename T> 
+	//std::vector<T> (std::vector<T>&& original) :
+	//	m_array(original.data())
+	//{
+	//	original.clear();
+	//}
+
+	void SetWorldAt(int index, DirectX::XMMATRIX&);
 	void SetInstancesWorld(DirectX::XMMATRIX*);
 
 	bool LoadModel(char* filename);
@@ -64,10 +73,9 @@ private:
 	ID3D11Buffer* m_pInstanceBuffer = nullptr;
 
 	int m_vertexCount = 0;
-	int m_instanceCount = 2;
+	int m_instanceCount = 100000;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
 	std::vector<InstanceType> m_Instances;
-	std::vector<DirectX::XMMATRIX> worldMatrices;
 
 };
