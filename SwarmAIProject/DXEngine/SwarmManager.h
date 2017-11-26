@@ -37,9 +37,6 @@ private:
 	const DirectX::XMFLOAT3 ComputeForce(const DirectX::XMFLOAT3 dir, const float mass);
 
 
-	const DirectX::XMFLOAT3 CalculateAcceleration(const DirectX::XMFLOAT3 force, const float mass);
-
-
 
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;

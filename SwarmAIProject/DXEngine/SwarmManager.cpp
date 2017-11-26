@@ -69,7 +69,7 @@ DirectX::XMMATRIX* SwarmManager::GetWorldMatrices()
 }
 
 
-// Calculate global best position 
+// Calculate global best position for each particle to move towards.
 void SwarmManager::SetGlobalBestDistance()
 {
 	for(auto i = 0; i < m_instanceCount; i++)
@@ -89,7 +89,7 @@ void SwarmManager::SetGlobalBestDistance()
 		{
 			m_globalBestDistance = particleDist;
 			m_globalBestPosition = particle->GetPosition().DXFloat3();
-		
+		 
 			//std::cout << "Particle distance of particle " << i << " is " <<
 			//	particleDist;
 			//std::cout << " ||| Global Best Distance is " << m_globalBestDistance;
@@ -99,7 +99,7 @@ void SwarmManager::SetGlobalBestDistance()
 			//	m_globalBestPosition.z << ") " << std::endl;
 			//
 			//std::cout << "BEST GLOBAL UPDATED" << std::endl << std::endl;
-		}
+		} 
 	}
 }
 
@@ -147,7 +147,7 @@ const DirectX::XMFLOAT3 SwarmManager::GetRandomPosition()
 {
 	std::random_device randDevice;
 	std::mt19937 generate(randDevice());  
-	std::uniform_real_distribution<> distribute(static_cast<double>(-500), static_cast<double>(500)); // both inclusive
+	std::uniform_real_distribution<> distribute(static_cast<double>(-100), static_cast<double>(100)); // both inclusive
 
 
 	auto x = static_cast<float>(distribute(generate));
@@ -166,7 +166,7 @@ const float SwarmManager::CalculateDistance(const DirectX::XMFLOAT3 a, const Dir
 	float y = (b.y - a.y);
 	float z = (b.z - a.z);
 
-	return  (x * x) + (y * y) + (z * z);
+	return (x * x) + (y * y) + (z * z); // remove sqrt because its performance heavy.
 }
 
 

@@ -25,7 +25,7 @@ struct Vector3
 	}
 	float Magnitude()
 	{
-		return sqrtf((x * x) + (y * y) + (z * z));
+		return (x * x) + (y * y) + (z * z); // sqrtf removed to avoid performance hit.
 	}
 
 	float x;

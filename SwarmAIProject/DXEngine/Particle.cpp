@@ -62,7 +62,7 @@ void Particle::CalcLoads(Vector3 force)
 	m_forces.y = 0.f;
 	m_forces.z = 0.f;
 
-	// Aggregatae forces
+	// Aggregate forces
 	m_forces += m_gravity + force;
 	//m_forces += force;
 }

@@ -23,10 +23,10 @@ const bool DXManager::Init(const int screenWidth,
 	IDXGIFactory* pFactory = nullptr;
 	IDXGIAdapter* pAdapter = nullptr;
 	IDXGIOutput*  pAdapterOutput = nullptr;
-	unsigned int numModes;
-	unsigned int  numerator;
-	unsigned int denominator;
-	unsigned int stringLength;
+	unsigned int numModes = 0;
+	unsigned int  numerator = 0;
+	unsigned int denominator = 0;
+	unsigned int stringLength = 0;
 
 
 	// Create and use a graphics interface factory.
@@ -66,7 +66,7 @@ const bool DXManager::Init(const int screenWidth,
 		return false;
 	}
 
-	for(auto i = 0; i < numModes; i++)
+	for(unsigned int i = 0; i < numModes; i++)
 	{
 		if(pDisplayModeList[i].Width == (unsigned int)screenWidth)
 		{

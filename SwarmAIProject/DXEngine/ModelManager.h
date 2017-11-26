@@ -20,14 +20,6 @@ public:
 
 	int GetVertexCount();
 	int GetInstanceCount();
-	
-	// vector rvalue *move* ctor // Games Engine Architecture pp. 110
-	//template <typename T> 
-	//std::vector<T> (std::vector<T>&& original) :
-	//	m_array(original.data())
-	//{
-	//	original.clear();
-	//}
 
 	void SetWorldAt(int index, DirectX::XMMATRIX&);
 	void SetInstancesWorld(DirectX::XMMATRIX*);

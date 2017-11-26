@@ -44,7 +44,8 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	}
 //	m_pCamera->SetPosition({-100.f, 50.f, -50.f});
 //	m_pCamera->SetPosition({0.f, 0.f, -10.f});
-	m_pCamera->SetPosition({0.f, 0.f, -1000.f});
+//	m_pCamera->SetPosition({0.f, 0.f, -1000.f});
+	m_pCamera->SetPosition({0.f, 0.f, -500.f});
 
 
 	// Model Manager Object
@@ -181,12 +182,12 @@ bool Application::Update()
 	}
 
 	// Check if the user pressed escape and wants to exit the application.
-	if(m_pInput->IsEscapePressed() == true)
+	if(m_pInput->IsEscapePressed())
 	{
 		return false;
 	}
 
-	auto result = HandleInput(0.01f);
+	auto result = HandleInput(0.1f);
 	if(!result) return false;
 
 	// Update the swarm and pass the world matrices back to the ModelManager
@@ -197,7 +198,6 @@ bool Application::Update()
 		auto worldMat = m_pSwarmManager->GetWorldAt(i);
 		m_pModelManager->SetWorldAt(i, worldMat);
 	}
-
 	return true;
 }
 
@@ -226,7 +226,6 @@ bool Application::Render()
 	{
 		return false;
 	}
-
 
 	m_pDXManager->EndScene();
 	return true;
