@@ -42,8 +42,9 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	{
 		return false;
 	}
-	m_pCamera->SetPosition({-100.f, 50.f, -50.f});
-	//m_pCamera->SetPosition({0.f, 0.f, -10.f});
+//	m_pCamera->SetPosition({-100.f, 50.f, -50.f});
+//	m_pCamera->SetPosition({0.f, 0.f, -10.f});
+	m_pCamera->SetPosition({0.f, 0.f, -100.f});
 
 
 	// Model Manager Object
@@ -88,7 +89,8 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 
 	
 	m_pSwarmManager = std::make_unique<SwarmManager>();
-	if(!m_pSwarmManager) return false;
+	if(!m_pSwarmManager) 
+		return false;
 	m_pSwarmManager->Init(m_pModelManager->GetInstanceCount());
 
 
@@ -188,7 +190,7 @@ bool Application::Update()
 	if(!result) return false;
 
 	// Update the swarm and pass the world matrices back to the ModelManager
-	m_pSwarmManager->Update(m_pModelManager->GetInstancesWorld());
+	m_pSwarmManager->Update();
 	m_pModelManager->SetInstancesWorld(m_pSwarmManager->GetWorldMatrices());
 
 	return true;

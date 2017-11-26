@@ -16,7 +16,9 @@ class SwarmManager
 private:
 	struct Particle
 	{
-		Particle(DirectX::XMFLOAT3 position = {0.f, 0.f, 0.f}, DirectX::XMFLOAT3 velocity = {0.f, 0.f, 0.f}, float mass = 1.f)
+		Particle(DirectX::XMFLOAT3 position = {0.f, 0.f, 0.f}, 
+				 DirectX::XMFLOAT3 velocity = {0.f, 0.f, 0.f}, 
+				 float mass = 1.f)
 		{
 			m_position = position;
 			m_velocity = velocity;
@@ -33,7 +35,7 @@ public:
 	~SwarmManager() = default;
 
 	const bool Init(int instanceCount);
-	void Update(DirectX::XMMATRIX* instanceMatrices);
+	void Update();
 	DirectX::XMMATRIX* GetWorldMatrices();
 
 
@@ -54,11 +56,12 @@ private:
 
 
 
-	DirectX::XMMATRIX* m_instanceMatrices;
 	std::vector<std::unique_ptr<Particle>> m_Particles;
+	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
 
-	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 0.f};
+	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 100.f};
 
+	float m_deltaTime = 0.0001f;
 	float m_instanceCount;
 	float m_globalBestDistance = 0.f;
 	DirectX::XMFLOAT3 m_globalBestPosition = {0.f, 0.f, 0.f};

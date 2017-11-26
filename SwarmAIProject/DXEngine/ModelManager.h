@@ -21,7 +21,6 @@ public:
 	int GetVertexCount();
 	int GetInstanceCount();
 	
-	DirectX::XMMATRIX* GetInstancesWorld();
 	void SetInstancesWorld(DirectX::XMMATRIX*);
 
 	bool LoadModel(char* filename);
@@ -65,7 +64,7 @@ private:
 	ID3D11Buffer* m_pInstanceBuffer = nullptr;
 
 	int m_vertexCount = 0;
-	int m_instanceCount = 100000;
+	int m_instanceCount = 2;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
 	std::vector<InstanceType> m_Instances;

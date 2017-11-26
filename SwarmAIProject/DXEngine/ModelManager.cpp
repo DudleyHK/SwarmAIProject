@@ -45,21 +45,12 @@ void ModelManager::Render(ID3D11DeviceContext* deviceContext)
 	RenderBuffers(deviceContext);
 }
 
-DirectX::XMMATRIX* ModelManager::GetInstancesWorld()
-{
-	for(auto i = 0; i < m_Instances.size(); i++)
-	{
-		worldMatrices[i] = m_Instances[i].worldMatrix;
-	}
-	return worldMatrices.data();
-}
-
-
 void ModelManager::SetInstancesWorld(DirectX::XMMATRIX* worldMatrices)
 {
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
-		m_Instances[i].worldMatrix = worldMatrices[i];
+		auto worldMat = worldMatrices[i];
+		m_Instances[i].worldMatrix = worldMat;
 	}
 }
 
@@ -146,15 +137,15 @@ const bool ModelManager::InitBuffers(ID3D11Device* device)
 
 	m_Instances.resize(m_instanceCount);
 
-	auto x = 0.f;
-	auto y = 0.f;
-	auto z = 0.f;
-	for(auto i = 0; i < m_Instances.size(); i++)
-	{
-		z += 5.f;
-		auto worldMat = DirectX::XMMatrixTranslation(x, y, z);
-		m_Instances[i].worldMatrix = DirectX::XMMatrixTranspose(worldMat);
-	}
+	//auto x = 0.f;
+	//auto y = 0.f;
+	//auto z = 0.f;
+	//for(auto i = 0; i < m_Instances.size(); i++)
+	//{
+	//	z += 5.f;
+	//	auto worldMat = DirectX::XMMatrixTranslation(x, y, z);
+	//	m_Instances[i].worldMatrix = DirectX::XMMatrixTranspose(worldMat);
+	//}
 
 	D3D11_BUFFER_DESC instanceBufferDesc = {0};
 	instanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -204,7 +195,8 @@ void ModelManager::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	for(auto i = 0; i < m_Instances.size(); i++)
 	{
-		dataView[i] = m_Instances[i];
+		auto worldMat = m_Instances[i];
+		dataView[i] = worldMat;
 	}
 	deviceContext->Unmap(m_pInstanceBuffer, 0);
 
