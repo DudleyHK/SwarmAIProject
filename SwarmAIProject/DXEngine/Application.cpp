@@ -92,7 +92,13 @@ bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int scre
 	m_pSwarmManager = std::make_unique<SwarmManager>();
 	if(!m_pSwarmManager) 
 		return false;
-	m_pSwarmManager->Init(m_pModelManager->GetInstanceCount());
+	m_pSwarmManager->Init(m_pDXManager->GetDevice(), m_pDXManager->GetDeviceContext(), hwnd, m_pModelManager->GetInstanceCount());
+
+
+    //m_pCollisionsManager = std::make_unique<CollisionsManager>();
+    //if(!m_pCollisionsManager)
+    //	return false;
+    //m_pCollisionsManager->Init(m_pModelManager->GetInstanceCount());
 
 
 	return true;
@@ -189,6 +195,18 @@ bool Application::Update()
 
 	auto result = HandleInput(0.1f);
 	if(!result) return false;
+
+
+	// Handle Collisions
+	// Update Active Particle List
+	//for(auto i = 0; i < m_pModelManager->GetInstanceCount(); i++)
+	//{
+	//	auto particle = m_pSwarmManager->GetParticleAt(i);
+	//	m_pCollisionsManager->AddParticle(particle);
+	//}
+	//m_pCollisionsManager->Update();
+
+
 
 	// Update the swarm and pass the world matrices back to the ModelManager
 	m_pSwarmManager->Update();

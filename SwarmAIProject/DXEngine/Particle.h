@@ -4,63 +4,10 @@
 
 */
 #pragma once
-#include <d3d11.h>
-#include <DirectXMath.h>
+#include <vector>
 
-struct Vector3
-{
-	Vector3(float _x = 0.f, float _y = 0.f, float _z = 0.f)
-	{
-		x = _x;
-		y = _y;
-		z = _z;
-	}
-	DirectX::XMFLOAT3 DXFloat3() const
-	{
-		return DirectX::XMFLOAT3(x, y, z);
-	}
-	DirectX::XMVECTOR DXVector() const
-	{
-		return DirectX::XMLoadFloat3(&DXFloat3());
-	}
-	float Magnitude()
-	{
-		return (x * x) + (y * y) + (z * z); // sqrtf removed to avoid performance hit.
-	}
+#include "Vector3.h"
 
-	float x;
-	float y;
-	float z;
-
-
-	Vector3 operator+= (const Vector3& vc3)
-	{
-		return Vector3(
-			x += vc3.x,
-			y += vc3.y,
-			z += vc3.z);
-	}
-	Vector3 operator+ (const Vector3& vc3)
-	{
-		return Vector3(
-			x + vc3.x, 
-			y + vc3.y, 
-			z + vc3.z);
-	}
-	Vector3 operator/ (const float& sc)
-	{
-		return Vector3(x / sc, y / sc, z / sc);
-	}
-	Vector3 operator* (const float& sc)
-	{
-		return Vector3(x * sc, y * sc, z * sc);
-	}
-
-	static Vector3 Zero()
-	{
-		return Vector3();
-	}
-};
 
 
 class Particle
@@ -70,22 +17,32 @@ public:
 	Particle();
 	~Particle() = default;
 
-	const Vector3 GetPosition() const;
-	const Vector3 GetVelocity() const;
-	const float   GetMass() const;
+	std::vector<Particle*>*   GetNeighbours();
+	const Vector3   GetSeperationForce() const;
+	const Vector3   GetPosition()   const;
+	const Vector3   GetVelocity()   const;
+	const float     GetMass()       const;
+	const int       GetRadius()     const;
+	const int       GetID()         const;
+	void SetSeperationForce(const Vector3);
 	void SetPosition(const Vector3);
 	void SetVelocity(const Vector3);
+	void SetID(const int);
+
+	void AddNeighbour(Particle*);
+	void ClearNeighbours();
 
 	void CalcLoads();
 	void CalcLoads(DirectX::XMFLOAT3 force);
 	void CalcLoads(Vector3 force);
 
 	void UpdateBodyEuler(float dt);
-	static const Vector3 ConvertToVector3(const DirectX::XMFLOAT3&);
+	static Vector3 ConvertToVector3(const DirectX::XMFLOAT3&);
 
 
 
 private:
+	int m_ID = -1;
 	float m_mass;
 	float m_speed;
 	float m_radius;
@@ -93,6 +50,9 @@ private:
 	Vector3 m_velocity;
 	Vector3 m_forces;
 	Vector3 m_gravity;
+	Vector3 m_seperationForce;
+
+	std::vector<Particle*> neighbours;
 
 	const float GRAVITY_ACCELERATION = -9.8f;
 

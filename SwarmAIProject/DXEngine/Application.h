@@ -12,7 +12,7 @@
 #include "ModelManager.h"
 #include "Position.h"
 #include "SwarmManager.h"
-
+#include "CollisionsManager.h"
 
 const bool  g_FULL_SCREEN = false;
 const bool  g_VSYNC_ENABLED = true;
@@ -42,5 +42,6 @@ private:
 	std::unique_ptr<ModelManager> m_pModelManager = nullptr;
 	std::unique_ptr<ColourShaderManager> m_pColShaderManager = nullptr;
 	std::unique_ptr<SwarmManager> m_pSwarmManager = nullptr;
+	std::unique_ptr<CollisionsManager> m_pCollisionsManager = nullptr;
 
 };

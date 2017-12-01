@@ -1,4 +1,7 @@
 /*
+
+
+
 */
 #include "ColourShaderManager.h"
 #include "Utilities.h"
@@ -72,11 +75,14 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 		return false;
 	}
 
+
 	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pPixelShader);
 	if(FAILED(result))
 	{
 		return false;
 	}
+
+
 
 	// Now setup the layout of the data that goes into the shader.
 	// This setup needs to match the VertexType stucture in the ModelClass and in the shader.
@@ -106,7 +112,6 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	polygonLayout[2].InstanceDataStepRate = 0;
 
 	// Instance Matrix
-
 	polygonLayout[3].SemanticName = "INSTANCE";
 	polygonLayout[3].SemanticIndex = 0;
 	polygonLayout[3].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -154,14 +159,13 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	SafeRelease(vertexShaderBuffer);
 	SafeRelease(pixelShaderBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	D3D11_BUFFER_DESC matrixBufferDesc = {0};
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
+	matrixBufferDesc.CPUAccessFlags = 0;
+
+
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_pMatrixBuffer);
@@ -169,6 +173,19 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 	{
 		return false;
 	}
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_pMatrixBuffer);
+	if(FAILED(result))
+	{
+		return false;
+	}
+
+	m_pConstantBuffer = std::make_unique<MatrixBufferType>();
+	if(!m_pConstantBuffer) 
+		return false;
+	ZeroMemory(m_pConstantBuffer.get(), sizeof(MatrixBufferType));
+
 	return true;
 }
 
@@ -208,26 +225,27 @@ bool ColourShaderManager::SetShaderParameters(ID3D11DeviceContext* deviceContext
 	viewMat = DirectX::XMMatrixTranspose(viewMat);
 	projMat = DirectX::XMMatrixTranspose(projMat);
 
+	m_pConstantBuffer->world = worldMat;
+	m_pConstantBuffer->view = viewMat;
+	m_pConstantBuffer->projection = projMat;
 
-	// create a resource which can be manipulated at run time if desired.
-	D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
-	auto result = deviceContext->Map(m_pMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if(FAILED(result))
-	{
-		return false;
-	}
+	deviceContext->UpdateSubresource(m_pMatrixBuffer, 0, NULL, m_pConstantBuffer.get(), 0, 0);
 
-	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
+	//// create a resource which can be manipulated at run time if desired.
+	//D3D11_MAPPED_SUBRESOURCE mappedResource = {0};
+	//auto result = deviceContext->Map(m_pMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	//if(FAILED(result))
+	//{
+	//	return false;
+	//}
+	//MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
+	//dataPtr->world = worldMat;
+	//dataPtr->view = viewMat;
+	//dataPtr->projection = projMat;
+	//deviceContext->Unmap(m_pMatrixBuffer, 0);
+	//unsigned int bufferNumber = 0;
 
-	dataPtr->world = worldMat;
-	dataPtr->view = viewMat;
-	dataPtr->projection = projMat;
-
-
-	deviceContext->Unmap(m_pMatrixBuffer, 0);
-	unsigned int bufferNumber = 0;
-
-	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_pMatrixBuffer);
+	deviceContext->VSSetConstantBuffers(0, 1, &m_pMatrixBuffer);
 
 	return true;
 }

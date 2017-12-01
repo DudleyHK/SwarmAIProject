@@ -65,7 +65,7 @@ private:
 	ID3D11Buffer* m_pInstanceBuffer = nullptr;
 
 	int m_vertexCount = 0;
-	int m_instanceCount = 100000;
+	int m_instanceCount = 10000;
 
 	std::vector<std::unique_ptr<ModelType>> m_pModelType;
 	std::vector<InstanceType> m_Instances;

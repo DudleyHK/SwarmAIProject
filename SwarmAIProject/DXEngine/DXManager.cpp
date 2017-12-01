@@ -303,7 +303,7 @@ Clear the back buffer and depth buffer.
 */
 void DXManager::BeginScene()
 {
-	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, DirectX::Colors::SkyBlue);
+	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, DirectX::Colors::MediumPurple);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 

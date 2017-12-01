@@ -4,8 +4,13 @@
 
 */
 #pragma once
+#include <fstream>
 #include <memory>
 #include <vector>
+
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include <d3dcompiler.h>
 
 #include "Particle.h"
 
@@ -16,18 +21,23 @@ public:
 	SwarmManager() = default;
 	~SwarmManager() = default;
 
-	const bool Init(int instanceCount);
+	const bool Init(ID3D11Device*, ID3D11DeviceContext*, HWND, int instanceCount);
 	void Update();
 	const DirectX::XMMATRIX& GetWorldAt(const int index) const;
 	DirectX::XMMATRIX* GetWorldMatrices();
-
-
-
+	Particle* SwarmManager::GetParticleAt(const int index) const;
 
 
 private:
+	const bool InitShader(ID3D11Device*, ID3D11DeviceContext*, HWND);
+	const bool CreateStructuredBuffer(ID3D11Device*);
+	const bool CompileComputeShader(ID3D11Device*, WCHAR*, HWND);
+	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
+
 	void SetGlobalBestDistance();
-	void CalculateParticlePhysics();
+	void UpdatePhysics();
+	void CalculateParticleCollisions(const int index);
+	void CalculateParticlePhysics(const int index);
 	void UpdateWorldMatrix(const Particle*, const int index);
 
 	const DirectX::XMFLOAT3 GetRandomPosition();
@@ -37,7 +47,30 @@ private:
 	const DirectX::XMFLOAT3 ComputeForce(const DirectX::XMFLOAT3 dir, const float mass);
 
 
+	struct ParticleConstantBuffer
+	{
+		DirectX::XMFLOAT3 m_globalBestPosition;
+		float m_globalBestDistance;
+	};
 
+	struct ParticleStruct
+	{
+		DirectX::XMFLOAT3 m_position;
+		DirectX::XMFLOAT3 m_velocity;
+		DirectX::XMFLOAT3 m_acceleration;
+	};
+
+
+	ID3D11Buffer* m_pConstantBuffer = nullptr;
+
+	// Structured Buffers
+	ID3D11Buffer*                       m_pParticles = nullptr;
+	ID3D11ShaderResourceView*           m_pParticlesSRV = nullptr;
+	ID3D11UnorderedAccessView*          m_pParticlesUAV = nullptr;
+
+	ID3D11ComputeShader* m_pParticleComputeShader = nullptr;
+
+	std::vector<ParticleStruct*> m_ParticleStructList;
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
 

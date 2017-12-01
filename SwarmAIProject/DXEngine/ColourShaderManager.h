@@ -2,6 +2,7 @@
 */
 #pragma once
 #include <fstream>
+#include <memory>
 
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -34,6 +35,8 @@ private:
 		DirectX::XMMATRIX view;
 		DirectX::XMMATRIX projection;
 	};
+
+	std::unique_ptr<MatrixBufferType> m_pConstantBuffer = nullptr;
 
 	ID3D11VertexShader* m_pVertexShader = nullptr;
 	ID3D11PixelShader*  m_pPixelShader = nullptr;
