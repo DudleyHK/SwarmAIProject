@@ -21,11 +21,13 @@ public:
 	SwarmManager() = default;
 	~SwarmManager() = default;
 
-	const bool Init(ID3D11Device*, ID3D11DeviceContext*, HWND, int instanceCount);
-	void Update();
 	const DirectX::XMMATRIX& GetWorldAt(const int index) const;
 	DirectX::XMMATRIX* GetWorldMatrices();
 	Particle* SwarmManager::GetParticleAt(const int index) const;
+
+	const bool Init(ID3D11Device*, ID3D11DeviceContext*, HWND, int instanceCount);
+	void Update(ID3D11DeviceContext*);
+	void Shutdown();
 
 
 private:
@@ -46,35 +48,42 @@ private:
 	const DirectX::XMFLOAT3 NormaliseFloat3(const DirectX::XMFLOAT3 a);
 	const DirectX::XMFLOAT3 ComputeForce(const DirectX::XMFLOAT3 dir, const float mass);
 
-
+	__declspec(align(16))
 	struct ParticleConstantBuffer
 	{
-		DirectX::XMFLOAT3 m_globalBestPosition;
-		float m_globalBestDistance;
+		DirectX::XMFLOAT3 m_goalPosition;
+		DirectX::XMFLOAT3 m_bestPosition;
+		float m_basicForce;
+		float m_gravityAcceleration;
 	};
-
 	struct ParticleStruct
 	{
 		DirectX::XMFLOAT3 m_position;
 		DirectX::XMFLOAT3 m_velocity;
-		DirectX::XMFLOAT3 m_acceleration;
+		DirectX::XMFLOAT3 m_forces;
+		DirectX::XMFLOAT3 m_gravity;
+		float  m_speed;
+		float  m_mass;
 	};
 
 
-	ID3D11Buffer* m_pConstantBuffer = nullptr;
-
 	// Structured Buffers
-	ID3D11Buffer*                       m_pParticles = nullptr;
-	ID3D11ShaderResourceView*           m_pParticlesSRV = nullptr;
-	ID3D11UnorderedAccessView*          m_pParticlesUAV = nullptr;
-
+	ID3D11Buffer*                       m_pInputBuffer = nullptr;
+	ID3D11Buffer*                       m_pOutputBuffer = nullptr;
+	ID3D11Buffer*                       m_pDebugOutputBuffer = nullptr;
+	ID3D11Buffer*                       m_pConstantBuffer = nullptr;
+	ID3D11ShaderResourceView*           m_pInputSRV = nullptr;
+	ID3D11UnorderedAccessView*          m_pOutputUAV = nullptr;
 	ID3D11ComputeShader* m_pParticleComputeShader = nullptr;
 
-	std::vector<ParticleStruct*> m_ParticleStructList;
+	ParticleStruct* m_ParticleStructList;
+
+
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
 
 	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 0.f};
+	const float GRAVITY_ACCELERATION = -9.8f;
 
 	int m_instanceCount;
 	float m_deltaTime = 0.01f;

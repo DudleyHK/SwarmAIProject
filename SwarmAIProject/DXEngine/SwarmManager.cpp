@@ -20,6 +20,7 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 	m_Particles.reserve(instanceCount);
 	m_WorldMatrices.reserve(instanceCount);
+	m_ParticleStructList = new ParticleStruct[m_instanceCount];
 
 	// give each particle a random veloctiy and position;
 	for(auto i = 0; i < m_instanceCount; i++)
@@ -35,8 +36,11 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 
 		// Fill the PArticleStructure List
-		m_ParticleStructList.push_back(new ParticleStruct());
-		m_ParticleStructList[i]->m_position = DirectX::XMFLOAT3(randPosition.x, randPosition.y, randPosition.z);
+		m_ParticleStructList[i].m_position = DirectX::XMFLOAT3(randPosition.x, randPosition.y, randPosition.z);
+		m_ParticleStructList[i].m_velocity = DirectX::XMFLOAT3(0.f, 0.f, 0.f);
+		m_ParticleStructList[i].m_forces = DirectX::XMFLOAT3(0.f, 0.f, 0.f);
+		m_ParticleStructList[i].m_speed = 0.f;
+		m_ParticleStructList[i].m_mass = 1.f;
 
 
 		//std::cout << "Initial position of Particle " << i << " is " <<
@@ -60,10 +64,74 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	return true;
 }
 
-void SwarmManager::Update()
+void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 {
 	SetGlobalBestDistance();
 	UpdatePhysics();
+
+
+	////////// DEBUG OUTPUT //////
+	deviceContext->CopyResource(m_pDebugOutputBuffer, m_pOutputBuffer);
+	D3D11_MAPPED_SUBRESOURCE mappedData;
+	deviceContext->Map(m_pDebugOutputBuffer, 0, D3D11_MAP_READ, 0, &mappedData);
+
+	auto dataView = reinterpret_cast<ParticleStruct*>(mappedData.pData);
+	for(int i = 0; i < m_instanceCount; i++)
+	{
+		//std::cout << "Looking at particle " << i << " whose position is (" << dataView[i].m_position.x << ", " <<
+		//	dataView[i].m_position.y << ", " << 
+		//	dataView[i].m_position.z << ")" << std::endl;
+		//
+		//std::cout << "Looking at particle " << i << " whose velocity is (" << dataView[i].m_velocity.x << ", " <<
+		//	dataView[i].m_velocity.y << ", " <<
+		//	dataView[i].m_velocity.z << ")" << std::endl;
+		//
+		//std::cout << "Looking at particle " << i << " whose forces is (" << dataView[i].m_forces.x << ", " <<
+		//	dataView[i].m_forces.y << ", " <<
+		//	dataView[i].m_forces.z << ")" << std::endl;
+		
+		std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
+			dataView[i].m_gravity.y << ", " <<
+			dataView[i].m_gravity.z << ")" << std::endl;
+		
+		//std::cout << "Looking at particle " << i << " whose speed is (" << dataView[i].m_speed << ")" << std::endl;
+
+		auto particleDist = CalculateDistance(dataView->m_position, GOAL_POSITION);
+		if(particleDist < m_globalBestDistance)
+		{
+			m_globalBestDistance = particleDist;
+			m_globalBestPosition = dataView->m_position;
+		}
+	}
+	deviceContext->Unmap(m_pDebugOutputBuffer, 0);
+
+	////////// UPDATE CONSTANT BUFFER //////
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    auto result = deviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_READ_WRITE, 0, &mappedResource);
+    if(FAILED(result))
+	{
+		return;
+	}
+    
+    auto dataPtr = reinterpret_cast<ParticleConstantBuffer*>(mappedResource.pData);
+	dataPtr->m_basicForce = 50.f;
+	dataPtr->m_goalPosition = GOAL_POSITION;
+	dataPtr->m_bestPosition = m_globalBestPosition;
+	dataPtr->m_gravityAcceleration = GRAVITY_ACCELERATION;
+    
+    deviceContext->Unmap(m_pConstantBuffer, 0);
+    deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+
+
+}
+
+void SwarmManager::Shutdown()
+{
+	SafeDeleteArray(m_ParticleStructList);
+	SafeRelease(m_pInputBuffer);
+	SafeRelease(m_pOutputBuffer);
+	SafeRelease(m_pConstantBuffer);
+	SafeRelease(m_pParticleComputeShader);
 }
 
 const DirectX::XMMATRIX& SwarmManager::GetWorldAt(const int index) const
@@ -96,6 +164,95 @@ const bool SwarmManager::InitShader(ID3D11Device* device, ID3D11DeviceContext* d
 	if(!CreateStructuredBuffer(device)) 
 		return false;
 
+	if(!CompileComputeShader(device, L"../DXEngine/ResourceFiles/ParticlePhysicsShader.cs.hlsl", hwnd))
+		return false;
+
+	deviceContext->CSSetShader(m_pParticleComputeShader, nullptr, 0);
+	deviceContext->CSSetShaderResources(0, 1, &m_pInputSRV);
+	deviceContext->CSSetUnorderedAccessViews(0, 1, &m_pOutputUAV, 0);
+	deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	deviceContext->Dispatch(16, 16, 1);
+
+
+
+	return true;
+}
+
+
+
+const bool SwarmManager::CreateStructuredBuffer(ID3D11Device* device)
+{
+	auto result = S_OK;
+
+	// Create a input buffer
+	D3D11_BUFFER_DESC inputDesc;
+	ZeroMemory(&inputDesc, sizeof(inputDesc));
+	inputDesc.Usage = D3D11_USAGE_DEFAULT;
+	inputDesc.ByteWidth = sizeof(ParticleStruct) * m_instanceCount;
+	inputDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	inputDesc.CPUAccessFlags = 0;
+	inputDesc.StructureByteStride = sizeof(ParticleStruct);
+	inputDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+	D3D11_SUBRESOURCE_DATA bufferInitData;
+	ZeroMemory(&bufferInitData, sizeof(bufferInitData));
+	bufferInitData.pSysMem = &m_ParticleStructList[0];
+
+	result = device->CreateBuffer(&inputDesc, &bufferInitData, &m_pInputBuffer);
+	if(FAILED(result)) return false;
+
+
+
+	D3D11_BUFFER_DESC outputDesc;
+	ZeroMemory(&outputDesc, sizeof(outputDesc));
+	outputDesc.Usage = D3D11_USAGE_DEFAULT;
+	outputDesc.ByteWidth = sizeof(ParticleStruct) * m_instanceCount;
+	outputDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+	outputDesc.CPUAccessFlags = 0;
+	outputDesc.StructureByteStride = sizeof(ParticleStruct);
+	outputDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+	result = device->CreateBuffer(&outputDesc, 0, &m_pOutputBuffer);
+	if(FAILED(result)) return false;
+
+
+	D3D11_BUFFER_DESC debugOutputDesc;
+	ZeroMemory(&debugOutputDesc, sizeof(debugOutputDesc));
+	debugOutputDesc.Usage = D3D11_USAGE_STAGING;
+	debugOutputDesc.BindFlags = 0;
+	debugOutputDesc.ByteWidth = sizeof(ParticleStruct) * m_instanceCount;
+	debugOutputDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	debugOutputDesc.StructureByteStride = sizeof(ParticleStruct);
+	debugOutputDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+	result = device->CreateBuffer(&debugOutputDesc, 0, &m_pDebugOutputBuffer);
+	if(FAILED(result)) return false;
+
+
+	// Create SRV
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+	srvDesc.BufferEx.FirstElement = 0;
+	srvDesc.BufferEx.Flags = 0;
+	srvDesc.BufferEx.NumElements = m_instanceCount;
+	result = device->CreateShaderResourceView(m_pInputBuffer, &srvDesc, &m_pInputSRV);
+	 if(FAILED(result)) return false;
+
+
+	// Create unordered access view 
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	ZeroMemory(&uavDesc, sizeof(uavDesc));
+	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+	uavDesc.Buffer.FirstElement = 0;
+	uavDesc.Buffer.Flags = 0;
+	uavDesc.Buffer.NumElements = m_instanceCount;
+
+	result = device->CreateUnorderedAccessView(m_pOutputBuffer, &uavDesc, &m_pOutputUAV);
+	if(FAILED(result)) return false;
+
 
 	// Set up dynamic constant Buffer
 	D3D11_BUFFER_DESC matrixBufferDesc = {0};
@@ -106,71 +263,9 @@ const bool SwarmManager::InitShader(ID3D11Device* device, ID3D11DeviceContext* d
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 
-	auto result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_pConstantBuffer);
+	result = device->CreateBuffer(&matrixBufferDesc, 0, &m_pConstantBuffer);
 	if(FAILED(result))
-	{
 		return false;
-	}
-
-	if(!CompileComputeShader(device, L"../DXEngine/ResourceFiles/ParticlePhysicsShader.cs.hlsl", hwnd))
-		return false;
-	
-	deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-	deviceContext->CSSetShaderResources(1, 1, &m_pParticlesSRV);
-	deviceContext->CSSetShader(m_pParticleComputeShader, nullptr, 0);
-	deviceContext->Dispatch(m_instanceCount / 256, 1, 1);
-
-	return true;
-}
-
-
-
-const bool SwarmManager::CreateStructuredBuffer(ID3D11Device* device)
-{
-	auto result = true;
-
-	// Create the Structured buffer
-	D3D11_BUFFER_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
-	bufferDesc.ByteWidth = sizeof(ParticleStruct) * m_instanceCount;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	bufferDesc.CPUAccessFlags = 0;
-	bufferDesc.StructureByteStride = sizeof(ParticleStruct);
-
-	D3D11_SUBRESOURCE_DATA bufferInitData;
-	ZeroMemory(&bufferInitData, sizeof(bufferInitData));
-	bufferInitData.pSysMem = m_ParticleStructList[0];
-
-	// auto particleData = (m_ParticleStructList.data()) ? &bufferInitData : nullptr;
-	result = device->CreateBuffer(&bufferDesc, &bufferInitData, &m_pParticles);
-	if(FAILED(result)) return false;
-
-
-	// create the shader resource view
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	ZeroMemory(&srvDesc, sizeof(srvDesc));
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	srvDesc.Buffer.ElementWidth = m_instanceCount;
-
-	result = device->CreateShaderResourceView(*&m_pParticles, &srvDesc, &m_pParticlesSRV);
-	if(FAILED(result)) return false;
-
-
-	// Create unordered access view 
-	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-	ZeroMemory(&uavDesc, sizeof(uavDesc));
-	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	uavDesc.Buffer.FirstElement = 0;
-	uavDesc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-	uavDesc.Buffer.NumElements = m_instanceCount;
-
-	result = device->CreateUnorderedAccessView(*&m_pParticles, &uavDesc, &m_pParticlesUAV);
-	if(FAILED(result)) return false;
-
 
 	return true;
 }
@@ -198,6 +293,8 @@ const bool SwarmManager::CompileComputeShader(ID3D11Device* device, WCHAR* csFil
 
 	device->CreateComputeShader(computeShaderBuffer->GetBufferPointer(), computeShaderBuffer->GetBufferSize(), nullptr, &m_pParticleComputeShader);
 	if(FAILED(result)) return false;
+
+	SafeRelease(computeShaderBuffer);
 
 	return true;
 }
@@ -336,10 +433,12 @@ void SwarmManager::UpdateWorldMatrix(const Particle* particle, const int index)
 	auto pPos = particle->GetPosition();
 	auto freshWorld = DirectX::XMMatrixIdentity();
 
-	//std::cout << "Instance position of particle " << index << " is " <<
-	//	particle->m_position.x << ", " <<
-	//	particle->m_position.y << ", " <<
-	//	particle->m_position.z << ", " << std::endl;
+	std::cout << "Instance position of particle " << index << " is " <<
+		pPos.x << ", " <<
+		pPos.y << ", " <<
+		pPos.z << ", " << std::endl;
+
+
 	
 
 	auto translation = DirectX::XMMatrixTranslation(pPos.x, pPos.y, pPos.z);

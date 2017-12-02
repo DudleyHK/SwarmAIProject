@@ -127,6 +127,11 @@ void Application::Shutdown()
 		m_pInput->Shutdown();
 	}
 
+	if(m_pSwarmManager)
+	{
+		m_pSwarmManager->Shutdown();
+	}
+
 }
 
 bool Application::HandleInput(float frameTime)
@@ -209,7 +214,8 @@ bool Application::Update()
 
 
 	// Update the swarm and pass the world matrices back to the ModelManager
-	m_pSwarmManager->Update();
+	m_pSwarmManager->Update(m_pDXManager->GetDeviceContext());
+
 
 	for(auto i = 0; i < m_pModelManager->GetInstanceCount(); i++)
 	{
