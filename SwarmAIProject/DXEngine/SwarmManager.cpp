@@ -51,6 +51,7 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	}
 
 
+
 	// Set a random global best distance to get it started.
 	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), m_goalPosition);
 	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat3();
@@ -58,6 +59,10 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 	if(!InitShader(device, deviceContext, hwnd))
 		return false;
+
+
+
+
 
 
 
@@ -90,9 +95,9 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 		//	dataView[i].m_forces.y << ", " <<
 		//	dataView[i].m_forces.z << ")" << std::endl;
 		
-		//std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
-		//	dataView[i].m_gravity.y << ", " <<
-		//	dataView[i].m_gravity.z << ")" << std::endl;
+		std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
+			dataView[i].m_gravity.y << ", " <<
+			dataView[i].m_gravity.z << ")" << std::endl;
 		
 		//std::cout << "Looking at particle " << i << " whose speed is (" << dataView[i].m_speed << ")" << std::endl;
 
@@ -105,22 +110,28 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	}
 	deviceContext->Unmap(m_pDebugOutputBuffer, 0);
 
+
+
+	m_pParticleConstantBuffer->m_basicForce = 50.f;
+	m_pParticleConstantBuffer->m_gravityAcceleration = GRAVITY_ACCELERATION;
+
+	deviceContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, m_pParticleConstantBuffer.get(), 0, 0);
+
+
 	////////// UPDATE CONSTANT BUFFER //////
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    auto result = deviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if(FAILED(result))
-	{
-		return;
-	}
+    //D3D11_MAPPED_SUBRESOURCE mappedResource;
+    //auto result = deviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    //if(FAILED(result))
+	//{
+	//	return;
+	//}
     
-    auto dataPtr = reinterpret_cast<ParticleConstantBuffer*>(mappedResource.pData);
-	dataPtr->m_basicForce = 50.f;
-	dataPtr->m_goalPosition = m_goalPosition;
-	dataPtr->m_bestPosition = m_globalBestPosition;
-	dataPtr->m_gravityAcceleration = GRAVITY_ACCELERATION;
+    //auto dataPtr = reinterpret_cast<ParticleConstantBuffer*>(mappedResource.pData);
+	//dataPtr->m_goalPosition = m_goalPosition;
+	//dataPtr->m_bestPosition = m_globalBestPosition;
     
-    deviceContext->Unmap(m_pConstantBuffer, 0);
-    deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+   // deviceContext->Unmap(m_pConstantBuffer, 0);
+   // deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
 
 }
@@ -263,16 +274,21 @@ const bool SwarmManager::CreateStructuredBuffer(ID3D11Device* device)
 
 	// Set up dynamic constant Buffer
 	D3D11_BUFFER_DESC matrixBufferDesc = {0};
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	matrixBufferDesc.ByteWidth = sizeof(ParticleConstantBuffer);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
+	matrixBufferDesc.CPUAccessFlags = 0;
 
 	result = device->CreateBuffer(&matrixBufferDesc, 0, &m_pConstantBuffer);
 	if(FAILED(result))
 		return false;
+
+
+	m_pParticleConstantBuffer = std::make_unique<ParticleConstantBuffer>();
+	if(!m_pParticleConstantBuffer)
+		return false;
+	ZeroMemory(m_pParticleConstantBuffer.get(), sizeof(ParticleConstantBuffer));
+
 
 	return true;
 }

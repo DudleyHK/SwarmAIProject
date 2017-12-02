@@ -7,8 +7,6 @@
 
 cbuffer ParticleConstantBuffer
 {
-	float3 goalPosition;
-	float3 bestPosition;
 	float  basicForce;
 	float  gravityAcceleration;
 };
@@ -26,6 +24,13 @@ struct ParticleStruct
 };
 
 
+//struct SwarmData
+//{
+//	float3 goalPosition;
+//	float3 bestPosition;
+//};
+
+//StructuredBuffer<SwarmData>      gInputB;
 StructuredBuffer<ParticleStruct> gInput;
 RWStructuredBuffer<ParticleStruct> gOutput;
 
@@ -65,15 +70,15 @@ float3 ComputeForce(float3 dir, float mass)
 	return float3(x, y, z);
 }
 
-float3 GetForce(ParticleStruct p)
-{
-	// check if this particle has a closer distance
-	float3 dir           = CalculateDirection(p.position, bestPosition);
-	float3 normalisedDir = normalize(dir);
-	float3 force         = ComputeForce(normalisedDir, p.mass);
-	
-	return p.forces + p.gravity + force;
-}
+//float3 GetForce(ParticleStruct p)
+//{
+//	// check if this particle has a closer distance
+//	float3 dir           = CalculateDirection(p.position, bestPosition);
+//	float3 normalisedDir = normalize(dir);
+//	float3 force         = ComputeForce(normalisedDir, p.mass);
+//	
+//	return p.forces + p.gravity + force;
+//}
 
 
 float3 GetVelocity(ParticleStruct p)
@@ -96,18 +101,21 @@ void ParticlePhysicsShader(uint3 DTid : SV_DispatchThreadID)
 {
 	const unsigned int p_id = DTid.x;
 	ParticleStruct p = gInput[p_id];
+	//SwarmData sd = gInput[p_id];
 
 	// reset forces
 	p.forces.x = 0;
 	p.forces.y = 0;
 	p.forces.z = 0;
 	
-	p.gravity.xyz = 0;
-	p.gravity.y = p.mass * gravityAcceleration;
+	float r = basicForce;
 
-	p.forces   = GetForce(p);
-	p.velocity = GetVelocity(p);
-	p.position = GetPosition(p);
+	p.gravity.xyz = r;
+	p.gravity.y =  gravityAcceleration;
+
+	//p.forces   = GetForce(p);
+	//p.velocity = GetVelocity(p);
+	//p.position = GetPosition(p);
 	
 	p.speed = length(p.velocity);
 

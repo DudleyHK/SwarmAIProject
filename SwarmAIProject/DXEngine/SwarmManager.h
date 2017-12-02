@@ -52,8 +52,6 @@ private:
 	__declspec(align(16))
 	struct ParticleConstantBuffer
 	{
-		DirectX::XMFLOAT3 m_goalPosition;
-		DirectX::XMFLOAT3 m_bestPosition;
 		float m_basicForce;
 		float m_gravityAcceleration;
 	};
@@ -65,6 +63,11 @@ private:
 		DirectX::XMFLOAT3 m_gravity;
 		float  m_speed;
 		float  m_mass;
+	};
+	struct SwarmData
+	{
+		DirectX::XMFLOAT3 m_goalPosition;
+		DirectX::XMFLOAT3 m_bestPosition;
 	};
 
 
@@ -78,7 +81,7 @@ private:
 	ID3D11ComputeShader* m_pParticleComputeShader = nullptr;
 
 	ParticleStruct* m_ParticleStructList;
-
+	std::unique_ptr<ParticleConstantBuffer> m_pParticleConstantBuffer = nullptr;
 
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
