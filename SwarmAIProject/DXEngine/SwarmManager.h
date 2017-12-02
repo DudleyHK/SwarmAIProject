@@ -24,6 +24,7 @@ public:
 	const DirectX::XMMATRIX& GetWorldAt(const int index) const;
 	DirectX::XMMATRIX* GetWorldMatrices();
 	Particle* SwarmManager::GetParticleAt(const int index) const;
+	void SetGoalPosition(const DirectX::XMFLOAT3);
 
 	const bool Init(ID3D11Device*, ID3D11DeviceContext*, HWND, int instanceCount);
 	void Update(ID3D11DeviceContext*);
@@ -82,7 +83,7 @@ private:
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
 
-	const DirectX::XMFLOAT3 GOAL_POSITION = {0.f, 0.f, 0.f};
+	DirectX::XMFLOAT3 m_goalPosition = {0.f, 0.f, 0.f};
 	const float GRAVITY_ACCELERATION = -9.8f;
 
 	int m_instanceCount;

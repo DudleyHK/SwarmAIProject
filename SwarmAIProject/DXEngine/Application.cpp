@@ -1,5 +1,8 @@
 /*
 */
+#include <iostream>
+
+
 #include "Application.h"
 #include "Utilities.h"
 
@@ -8,6 +11,8 @@
 
 bool Application::Init(HINSTANCE hInstance, HWND hwnd, int screenWidth, int screenHeight)
 {
+	m_hwnd = hwnd;
+
 	// Input Object
 	m_pInput = std::make_unique<InputManager>();
 	if(!m_pInput)
@@ -141,8 +146,6 @@ bool Application::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_pPosition->SetFrameTime(frameTime);
 
-
-
 	// Handle the input.
 
 	auto multiply = m_pInput->IsLShiftPressed();
@@ -179,6 +182,78 @@ bool Application::HandleInput(float frameTime)
 	// Set the position of the camera.
 	m_pCamera->SetPosition(position);
 	m_pCamera->SetRotation(rotation);
+
+
+	//////////////// MOUSE TO WORLD //////////////////////////
+	DirectX::XMMATRIX projMat;
+	POINT mousePosition;
+
+	GetCursorPos(&mousePosition);
+	ScreenToClient(m_hwnd, &mousePosition);
+
+	auto mouseX = mousePosition.x;
+	auto mouseY = mousePosition.y;
+
+	DirectX::XMVECTOR pickRayInViewSpaceDir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+	DirectX::XMVECTOR pickRayInViewSpacePos = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+
+	float PRVecX, PRVecY, PRVecZ;
+
+	//float pointX = ((2.f * mousePosition.x) / 1280) - 1.f;
+	//float pointY = (((2.f * mousePosition.y) / 800) - 1.f) * -1.f;
+
+	//Transform 2D pick position on screen space to 3D ray in View space
+	PRVecX = (((2.0f * mouseX) / 1280) - 1);
+	PRVecY = -(((2.0f * mouseY) / 800) - 1);
+	PRVecZ = 1.0f;    //View space's Z direction ranges from 0 to 1, so we set 1 since the ray goes "into" the screen
+
+	DirectX::XMFLOAT4X4 storeProjMat;
+	m_pDXManager->GetProjectionMatrix(projMat);
+	DirectX::XMStoreFloat4x4(&storeProjMat, projMat);
+	PRVecX /= storeProjMat._11;
+	PRVecY /= storeProjMat._22;
+
+	pickRayInViewSpaceDir = DirectX::XMVectorSet(PRVecX, PRVecY, PRVecZ, 0.0f);
+
+	//Uncomment this line if you want to use the center of the screen (client area)
+	//to be the point that creates the picking ray (eg. first person shooter)
+	//pickRayInViewSpaceDir = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+
+	// Transform 3D Ray from View space to 3D ray in World space
+	DirectX::XMMATRIX pickRayToWorldSpaceMatrix;
+	DirectX::XMVECTOR matInvDeter;    //We don't use this, but the xna matrix inverse function requires the first parameter to not be null
+
+	pickRayToWorldSpaceMatrix = DirectX::XMMatrixInverse(&matInvDeter, m_pCamera->GetViewMatrix());    //Inverse of View Space matrix is World space matrix
+
+	auto pickRayInWorldSpacePos = DirectX::XMVector3TransformCoord(pickRayInViewSpacePos, pickRayToWorldSpaceMatrix);
+	auto pickRayInWorldSpaceDir = DirectX::XMVector3TransformNormal(pickRayInViewSpaceDir, pickRayToWorldSpaceMatrix);
+	
+	
+	DirectX::XMFLOAT3 storeRayDir;
+	DirectX::XMStoreFloat3(&storeRayDir, pickRayInWorldSpaceDir);
+
+		 storeRayDir.x *= 200.f;
+		 storeRayDir.y *= 200.f;
+		 storeRayDir.z = m_pCamera->GetPosition().z + 500.f;
+
+	//std::cout << " New vector is" <<
+	//	storeRayDir.x << ", " <<
+	//	storeRayDir.y << ", " <<
+	//	storeRayDir.z << ", " << std::endl;
+
+
+	 if(m_pInput->IsLeftClickPressed())
+	 {
+		 m_pSwarmManager->SetGoalPosition(storeRayDir);
+		//
+		//std::cout << "Camera position and thus Goal Position is " <<
+		//	 pointX << ", " <<
+		//	 pointY << ", " <<
+		//	 0.f << ", " << std::endl;
+	 }
+
+
+
 
 	return true;
 
@@ -236,7 +311,7 @@ bool Application::Render()
 
 	m_pCamera->Render();
 
-	m_pCamera->GetViewMatrix(viewMat);
+	viewMat = m_pCamera->GetViewMatrix();
 	m_pDXManager->GetWorldMatrix(worldMat);
 	m_pDXManager->GetProjectionMatrix(projMat);
 

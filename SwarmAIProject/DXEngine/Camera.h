@@ -17,9 +17,9 @@ public:
 
 	DirectX::XMFLOAT3 GetPosition();
 	DirectX::XMFLOAT3 GetRotation();
+	DirectX::XMMATRIX GetViewMatrix();
 
 	void Render();
-	void GetViewMatrix(DirectX::XMMATRIX&);
 
 
 private:

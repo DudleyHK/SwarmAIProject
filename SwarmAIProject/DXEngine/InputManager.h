@@ -22,6 +22,7 @@ public:
 	void Shutdown();
 	bool Update();
 
+	bool IsLeftClickPressed();
 	bool IsEscapePressed();
 	bool IsLeftPressed();
 	bool IsRightPressed();
@@ -38,7 +39,7 @@ public:
 	bool IsPgDownPressed();
 	bool IsLShiftPressed();
 
-	DirectX::XMINT2 InputManager::GetMouseLocation();
+	const DirectX::XMFLOAT2 InputManager::GetMouseLocation();
 
 private:
 	bool ReadKeyboard();
@@ -55,5 +56,5 @@ private:
 	int m_screenWidth;
 	int m_screenHeight;
 
-	DirectX::XMINT2 m_mouseLocation = {0, 0};
+	DirectX::XMFLOAT2 m_mouseLocation = {0, 0};
 };

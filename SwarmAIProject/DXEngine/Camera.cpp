@@ -59,7 +59,7 @@ void Camera::Render()
 
 
 
-void Camera::GetViewMatrix(DirectX::XMMATRIX& viewMat)
+DirectX::XMMATRIX Camera::GetViewMatrix()
 {
-	viewMat = m_viewMat;
+	return m_viewMat;
 }

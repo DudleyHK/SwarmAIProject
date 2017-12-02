@@ -103,13 +103,13 @@ void ParticlePhysicsShader(uint3 DTid : SV_DispatchThreadID)
 	p.forces.z = 0;
 	
 	p.gravity.xyz = 0;
-	p.gravity.y = basicForce; // = p.mass * gravityAcceleration;
+	p.gravity.y = p.mass * gravityAcceleration;
 
 	p.forces   = GetForce(p);
-	//p.velocity = GetVelocity(p);
-	//p.position = GetPosition(p);
-	//
-	//p.speed = length(p.velocity);
+	p.velocity = GetVelocity(p);
+	p.position = GetPosition(p);
+	
+	p.speed = length(p.velocity);
 
 
 
@@ -120,6 +120,4 @@ void ParticlePhysicsShader(uint3 DTid : SV_DispatchThreadID)
 	gOutput[p_id].velocity = p.velocity;
 	gOutput[p_id].position = p.position;
 	gOutput[p_id].speed = p.speed;
-
-
 }

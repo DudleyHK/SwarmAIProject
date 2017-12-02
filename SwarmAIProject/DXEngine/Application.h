@@ -34,6 +34,7 @@ public:
 private:
 
 	bool HandleInput(float frameTime);
+	HWND m_hwnd;
 
 	std::unique_ptr<DXManager> m_pDXManager = nullptr;
 	std::unique_ptr<Camera> m_pCamera = nullptr;

@@ -52,7 +52,7 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 
 	// Set a random global best distance to get it started.
-	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), GOAL_POSITION);
+	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), m_goalPosition);
 	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat3();
 	
 
@@ -90,13 +90,13 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 		//	dataView[i].m_forces.y << ", " <<
 		//	dataView[i].m_forces.z << ")" << std::endl;
 		
-		std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
-			dataView[i].m_gravity.y << ", " <<
-			dataView[i].m_gravity.z << ")" << std::endl;
+		//std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
+		//	dataView[i].m_gravity.y << ", " <<
+		//	dataView[i].m_gravity.z << ")" << std::endl;
 		
 		//std::cout << "Looking at particle " << i << " whose speed is (" << dataView[i].m_speed << ")" << std::endl;
 
-		auto particleDist = CalculateDistance(dataView->m_position, GOAL_POSITION);
+		auto particleDist = CalculateDistance(dataView->m_position, m_goalPosition);
 		if(particleDist < m_globalBestDistance)
 		{
 			m_globalBestDistance = particleDist;
@@ -107,7 +107,7 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 
 	////////// UPDATE CONSTANT BUFFER //////
     D3D11_MAPPED_SUBRESOURCE mappedResource;
-    auto result = deviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_READ_WRITE, 0, &mappedResource);
+    auto result = deviceContext->Map(m_pConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     if(FAILED(result))
 	{
 		return;
@@ -115,7 +115,7 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
     
     auto dataPtr = reinterpret_cast<ParticleConstantBuffer*>(mappedResource.pData);
 	dataPtr->m_basicForce = 50.f;
-	dataPtr->m_goalPosition = GOAL_POSITION;
+	dataPtr->m_goalPosition = m_goalPosition;
 	dataPtr->m_bestPosition = m_globalBestPosition;
 	dataPtr->m_gravityAcceleration = GRAVITY_ACCELERATION;
     
@@ -155,6 +155,13 @@ DirectX::XMMATRIX* SwarmManager::GetWorldMatrices()
 Particle* SwarmManager::GetParticleAt(const int index) const
 {
 	return m_Particles[index].get();
+}
+
+void SwarmManager::SetGoalPosition(const DirectX::XMFLOAT3 goalPosition)
+{
+	m_goalPosition = goalPosition;
+	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), m_goalPosition);
+	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat3();
 }
 
 
@@ -325,10 +332,12 @@ void SwarmManager::OutputShaderErrorMessage(ID3D10Blob* errorMsg, HWND hwnd, WCH
 // Calculate global best position for each particle to move towards.
 void SwarmManager::SetGlobalBestDistance()
 {
+//	std::cout << "Current goal position is " << "(" << m_goalPosition.x << ", " << m_goalPosition.y << ", " << m_goalPosition.z << std::endl;
+
 	for(auto i = 0; i < m_instanceCount; i++)
 	{
 		auto particle = m_Particles[i].get();
-		auto particleDist = CalculateDistance(particle->GetPosition().DXFloat3(), GOAL_POSITION);
+		auto particleDist = CalculateDistance(particle->GetPosition().DXFloat3(), m_goalPosition);
 
 		//std::cout << "Particle distance of particle " << i << " is " <<
 		//	particleDist;
@@ -433,10 +442,10 @@ void SwarmManager::UpdateWorldMatrix(const Particle* particle, const int index)
 	auto pPos = particle->GetPosition();
 	auto freshWorld = DirectX::XMMatrixIdentity();
 
-	std::cout << "Instance position of particle " << index << " is " <<
-		pPos.x << ", " <<
-		pPos.y << ", " <<
-		pPos.z << ", " << std::endl;
+	//std::cout << "Instance position of particle " << index << " is " <<
+	//	pPos.x << ", " <<
+	//	pPos.y << ", " <<
+	//	pPos.z << ", " << std::endl;
 
 
 	

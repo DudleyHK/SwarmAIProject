@@ -107,8 +107,9 @@ bool InputManager::Update()
 
 
 
-DirectX::XMINT2 InputManager::GetMouseLocation()
+const DirectX::XMFLOAT2 InputManager::GetMouseLocation()
 {
+	
 	return m_mouseLocation;
 }
 
@@ -173,6 +174,19 @@ void InputManager::ProcessInput()
 		m_mouseLocation.y = m_screenHeight;
 	}
 }
+
+
+
+bool InputManager::IsLeftClickPressed()
+{
+	if(m_mouseState.rgbButtons[0])
+	{
+		return true;
+	}
+	return false;
+}
+
+
 
 bool InputManager::IsEscapePressed()
 {
