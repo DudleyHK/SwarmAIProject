@@ -41,7 +41,7 @@ public:
 
 
 
-private:
+public:
 	int m_ID = -1;
 	float m_mass;
 	float m_speed;

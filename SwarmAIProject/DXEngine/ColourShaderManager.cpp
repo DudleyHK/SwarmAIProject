@@ -174,12 +174,12 @@ bool ColourShaderManager::InitShader(ID3D11Device* device, HWND hwnd, WCHAR* vsF
 		return false;
 	}
 
-	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_pMatrixBuffer);
-	if(FAILED(result))
-	{
-		return false;
-	}
+	//// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	//result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_pMatrixBuffer);
+	//if(FAILED(result))
+	//{
+	//	return false;
+	//}
 
 	m_pConstantBuffer = std::make_unique<MatrixBufferType>();
 	if(!m_pConstantBuffer) 

@@ -7,10 +7,11 @@
 
 cbuffer ParticleConstantBuffer
 {
+	float3 goalPosition;
+	float3 bestPosition;
 	float  basicForce;
 	float  gravityAcceleration;
 };
-
 
 
 struct ParticleStruct
@@ -23,19 +24,8 @@ struct ParticleStruct
 	float  mass;
 };
 
-
-//struct SwarmData
-//{
-//	float3 goalPosition;
-//	float3 bestPosition;
-//};
-
-//StructuredBuffer<SwarmData>      gInputB;
-StructuredBuffer<ParticleStruct> gInput;
+StructuredBuffer<ParticleStruct>   gInput;
 RWStructuredBuffer<ParticleStruct> gOutput;
-
-
-
 
 
 
@@ -70,15 +60,15 @@ float3 ComputeForce(float3 dir, float mass)
 	return float3(x, y, z);
 }
 
-//float3 GetForce(ParticleStruct p)
-//{
-//	// check if this particle has a closer distance
-//	float3 dir           = CalculateDirection(p.position, bestPosition);
-//	float3 normalisedDir = normalize(dir);
-//	float3 force         = ComputeForce(normalisedDir, p.mass);
-//	
-//	return p.forces + p.gravity + force;
-//}
+float3 GetForce(ParticleStruct p)
+{
+	// check if this particle has a closer distance
+	float3 dir           = CalculateDirection(p.position, bestPosition);
+	//float3 normalisedDir = 1.0 / length(dir);
+	float3 force         = ComputeForce(dir, p.mass);
+	
+	return p.gravity + force;
+}
 
 
 float3 GetVelocity(ParticleStruct p)
@@ -97,35 +87,30 @@ float3 GetPosition(ParticleStruct p)
 
 
 [numthreads(16, 16, 1)]
-void ParticlePhysicsShader(uint3 DTid : SV_DispatchThreadID)
+void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-	const unsigned int p_id = DTid.x;
-	ParticleStruct p = gInput[p_id];
-	//SwarmData sd = gInput[p_id];
+	const unsigned int dtid = dispatchThreadID.x;
+	ParticleStruct p = gInput[dtid];
 
 	// reset forces
 	p.forces.x = 0;
 	p.forces.y = 0;
 	p.forces.z = 0;
-	
-	float r = basicForce;
 
-	p.gravity.xyz = r;
-	p.gravity.y =  gravityAcceleration;
 
-	//p.forces   = GetForce(p);
+	// TEST THESE VALUES
+	p.forces   +=  GetForce(p);
 	//p.velocity = GetVelocity(p);
 	//p.position = GetPosition(p);
-	
-	p.speed = length(p.velocity);
+	//p.speed    = length(p.velocity);
 
 
 
 
 	// append the normalised vector to output buffer.
-	gOutput[p_id].gravity = p.gravity;
-	gOutput[p_id].forces = p.forces;
-	gOutput[p_id].velocity = p.velocity;
-	gOutput[p_id].position = p.position;
-	gOutput[p_id].speed = p.speed;
+	gOutput[dtid].gravity  = p.gravity;
+	gOutput[dtid].forces   = p.forces;
+	gOutput[dtid].velocity = p.velocity;
+	gOutput[dtid].position = p.position;
+	gOutput[dtid].speed    = p.speed;
 }
