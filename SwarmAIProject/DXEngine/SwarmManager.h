@@ -49,10 +49,10 @@ private:
 	const DirectX::XMFLOAT3 NormaliseFloat3(const DirectX::XMFLOAT3 a);
 	const DirectX::XMFLOAT3 ComputeForce(const DirectX::XMFLOAT3 dir, const float mass);
 
-	__declspec(align(16))
+	__declspec(align(64))
 	struct ParticleConstantBuffer
 	{
-		DirectX::XMFLOAT3 m_goalPosition;
+		DirectX::XMFLOAT3 m_goalPosition; // if i get rid of all other variables in const buffer. bets poition works.
 		DirectX::XMFLOAT3 m_bestPosition;
 		float m_basicForce;
 		float m_gravityAcceleration;
