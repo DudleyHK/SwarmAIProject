@@ -33,11 +33,11 @@ public:
 	void ClearNeighbours();
 
 	void CalcLoads();
-	void CalcLoads(DirectX::XMFLOAT3 force);
+	void CalcLoads(DirectX::XMFLOAT4 force);
 	void CalcLoads(Vector3 force);
 
 	void UpdateBodyEuler(float dt);
-	static Vector3 ConvertToVector3(const DirectX::XMFLOAT3&);
+	static Vector3 ConvertToVector3(const DirectX::XMFLOAT4&);
 
 
 

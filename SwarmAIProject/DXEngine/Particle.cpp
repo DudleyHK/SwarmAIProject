@@ -96,7 +96,7 @@ void Particle::CalcLoads()
 {
 	CalcLoads(Vector3::Zero());
 }
-void Particle::CalcLoads(DirectX::XMFLOAT3 force)
+void Particle::CalcLoads(DirectX::XMFLOAT4 force)
 {
 	CalcLoads(Vector3(force.x, force.y, force.z));
 }
@@ -137,7 +137,7 @@ void Particle::UpdateBodyEuler(float dt)
 }
 
 
-Vector3 Particle::ConvertToVector3(const DirectX::XMFLOAT3& convert)
+Vector3 Particle::ConvertToVector3(const DirectX::XMFLOAT4& convert)
 {
 	return Vector3(convert.x, convert.y, convert.z);
 }

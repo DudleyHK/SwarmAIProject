@@ -34,9 +34,9 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 
 		// Fill the PArticleStructure List
-		m_ParticleStructList[i].m_position = DirectX::XMFLOAT3(randPosition.x, randPosition.y, randPosition.z);
-		m_ParticleStructList[i].m_velocity = DirectX::XMFLOAT3(0.f, 0.f, 0.f);
-		m_ParticleStructList[i].m_forces = DirectX::XMFLOAT3(0.f, 0.f, 0.f);
+		m_ParticleStructList[i].m_position = DirectX::XMFLOAT4(randPosition.x, randPosition.y, randPosition.z, 0.f);
+		m_ParticleStructList[i].m_velocity = DirectX::XMFLOAT4(0.f, 0.f, 0.f, 0.f);
+		m_ParticleStructList[i].m_forces = DirectX::XMFLOAT4(0.f, 0.f, 0.f, 0.f);
 		m_ParticleStructList[i].m_speed = 0.f;
 		m_ParticleStructList[i].m_mass = 1.f;
 	}
@@ -44,8 +44,8 @@ const bool SwarmManager::Init(ID3D11Device* device, ID3D11DeviceContext* deviceC
 
 
 	// Set a random global best distance to get it started.
-	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), m_goalPosition);
-	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat3();
+	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat4(), m_goalPosition);
+	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat4();
 	
 
 	if(!InitShader(device, deviceContext, hwnd))
@@ -90,23 +90,23 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	{
 		auto particle = dataView[i];
 		
-		//std::cout << "Looking at particle " << i << " whose position is (" << dataView[i].m_position.x << ", " <<
-		//	dataView[i].m_position.y << ", " << 
-		//	dataView[i].m_position.z << ")" << std::endl;
-		//
-		//std::cout << "Looking at particle " << i << " whose velocity is (" << dataView[i].m_velocity.x << ", " <<
+		std::cout << "GPU particle " << i << " whose position is (" << dataView[i].m_position.x << ", " <<
+			dataView[i].m_position.y << ", " << 
+			dataView[i].m_position.z << ")" << std::endl;
+		
+		//std::cout << "GPU particle " << i << " whose velocity is (" << dataView[i].m_velocity.x << ", " <<
 		//	dataView[i].m_velocity.y << ", " <<
 		//	dataView[i].m_velocity.z << ")" << std::endl;
-		//
-		std::cout << "GPU particle " << i << " forces is (" << particle.m_forces.x << ", " <<
-			particle.m_forces.y << ", " <<
-			particle.m_forces.z << ")" << std::endl;
 		
-		//std::cout << "Looking at particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
+		//std::cout << "GPU particle " << i << " forces is (" << particle.m_forces.x << ", " <<
+		//	particle.m_forces.y << ", " <<
+		//	particle.m_forces.z << ")" << std::endl;
+		
+		//std::cout << "GPU particle " << i << " whose gravity is (" << dataView[i].m_gravity.x << ", " <<
 		//	dataView[i].m_gravity.y << ", " <<
 		//	dataView[i].m_gravity.z << ")" << std::endl;
 		//
-		//std::cout << "Looking at particle " << i << " whose speed is (" << dataView[i].m_speed << ")" << std::endl;
+		//std::cout << "GPU particle " << i << " whose speed is (" << dataView[i].m_speed << ")" << std::endl;
 
 		auto particleDist = CalculateDistance(dataView->m_position, m_goalPosition);
 		if(particleDist < m_globalBestDistance)
@@ -133,8 +133,8 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	}
    
     auto dataPtr = reinterpret_cast<ParticleConstantBuffer*>(mappedResource.pData);
-	dataPtr->m_bestPosition = m_globalBestPosition;
-	dataPtr->m_goalPosition = m_goalPosition;
+	dataPtr->m_bestPosition = DirectX::XMFLOAT4(m_globalBestPosition.x, m_globalBestPosition.y, m_globalBestPosition.z, 0);
+	dataPtr->m_goalPosition = DirectX::XMFLOAT4(m_goalPosition.x, m_goalPosition.y, m_goalPosition.z, 0);
 	dataPtr->m_basicForce = 50.f;
 	dataPtr->m_gravityAcceleration = GRAVITY_ACCELERATION;
 
@@ -215,11 +215,11 @@ Particle* SwarmManager::GetParticleAt(const int index) const
 	return m_Particles[index].get();
 }
 
-void SwarmManager::SetGoalPosition(const DirectX::XMFLOAT3 goalPosition)
+void SwarmManager::SetGoalPosition(const DirectX::XMFLOAT4 goalPosition)
 {
 	m_goalPosition = goalPosition;
-	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat3(), m_goalPosition);
-	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat3();
+	m_globalBestDistance = CalculateDistance(m_Particles[0]->GetPosition().DXFloat4(), m_goalPosition);
+	m_globalBestPosition = m_Particles[0]->GetPosition().DXFloat4();
 }
 
 
@@ -389,7 +389,7 @@ void SwarmManager::SetGlobalBestDistance()
 	for(auto i = 0; i < m_instanceCount; i++)
 	{
 		auto particle = m_Particles[i].get();
-		auto particleDist = CalculateDistance(particle->GetPosition().DXFloat3(), m_goalPosition);
+		auto particleDist = CalculateDistance(particle->GetPosition().DXFloat4(), m_goalPosition);
 
 	//	std::cout << "Particle distance of particle " << i << " is " <<
 	//		particleDist;
@@ -402,7 +402,7 @@ void SwarmManager::SetGlobalBestDistance()
 		if(particleDist < m_globalBestDistance)
 		{
 			m_globalBestDistance = particleDist;
-			m_globalBestPosition = particle->GetPosition().DXFloat3();
+			m_globalBestPosition = particle->GetPosition().DXFloat4();
 		 
 			//std::cout << "Particle distance of particle " << i << " is " <<
 			//	particleDist;
@@ -443,7 +443,7 @@ void SwarmManager::CalculateParticleCollisions(const int index)
 		auto neighbour = m_Particles[i].get();
 		if(neighbour->GetID() == particle->GetID()) continue;
 
-		auto distance = CalculateDistance(particle->GetPosition().DXFloat3(), neighbour->GetPosition().DXFloat3());
+		auto distance = CalculateDistance(particle->GetPosition().DXFloat4(), neighbour->GetPosition().DXFloat4());
 		auto radius = particle->GetRadius();
 
 		//std::cout << "Distance between particle and neighbour is " << distance << std::endl;
@@ -462,7 +462,7 @@ void SwarmManager::CalculateParticleCollisions(const int index)
 	if(closestID <= -1) return;
 
 	// Push the particle away from the nearest neighbour.
-	auto direction = CalculateDirection(particle->GetPosition().DXFloat3(), m_Particles[closestID]->GetPosition().DXFloat3());
+	auto direction = CalculateDirection(particle->GetPosition().DXFloat4(), m_Particles[closestID]->GetPosition().DXFloat4());
 	auto normalisedDirection = NormaliseFloat3(direction);
 	auto force = ComputeForce(normalisedDirection, particle->GetMass());
 
@@ -477,7 +477,7 @@ void SwarmManager::CalculateParticlePhysics(const int index)
 {
 	auto particle = m_Particles[index].get();
 
-	auto direction = CalculateDirection(particle->GetPosition().DXFloat3(), m_globalBestPosition);
+	auto direction = CalculateDirection(particle->GetPosition().DXFloat4(), m_globalBestPosition);
 	auto normalisedDirection = NormaliseFloat3(direction);
 	auto force = ComputeForce(normalisedDirection, particle->GetMass());
 
@@ -494,27 +494,20 @@ void SwarmManager::UpdateWorldMatrix(const Particle* particle, const int index)
 	auto pPos = particle->GetPosition();
 	auto freshWorld = DirectX::XMMatrixIdentity();
 
-	//std::cout << "Instance position of particle " << index << " is " <<
-	//	pPos.x << ", " <<
-	//	pPos.y << ", " <<
-	//	pPos.z << ", " << std::endl;
-	//
-	//std::cout << "Instance velocity of particle " << index << " is " <<
-	//	particle->GetVelocity().x << ", " <<
-	//	particle->GetVelocity().y << ", " <<
-	//	particle->GetVelocity().z << ", " << std::endl;
-
-
-	//std::cout << "Instance velocity of particle " << index << " is " <<
-	//	particle->GetVelocity().x << ", " <<
-	//	particle->GetVelocity().y << ", " <<
-	//	particle->GetVelocity().z << ", " << std::endl;
+	std::cout << "CPU position of particle " << index << " is " <<
+		pPos.x << ", " <<
+		pPos.y << ", " <<
+		pPos.z << ", " << std::endl;
 	
+	//std::cout << "CPU velocity of particle " << index << " is " <<
+	//	particle->GetVelocity().x << ", " <<
+	//	particle->GetVelocity().y << ", " <<
+	//	particle->GetVelocity().z << ", " << std::endl;
 
-	//std::cout << "CPU particle "  << index << " force is (" <<
-	//	particle->m_forces.x << ", " <<
-	//	particle->m_forces.y << ", " <<
-	//	particle->m_forces.z << ") " << std::endl;
+	 //std::cout << "CPU force of particle "  << index << " is " <<
+	 //	particle->m_forces.x << ", " <<
+	 //	particle->m_forces.y << ", " <<
+	 //	particle->m_forces.z << ") " << std::endl;
 
 	auto translation = DirectX::XMMatrixTranslation(pPos.x, pPos.y, pPos.z);
 	freshWorld = DirectX::XMMatrixTranspose(translation);
@@ -525,7 +518,7 @@ void SwarmManager::UpdateWorldMatrix(const Particle* particle, const int index)
 
 
 
-const DirectX::XMFLOAT3 SwarmManager::GetRandomPosition()
+const DirectX::XMFLOAT4 SwarmManager::GetRandomPosition()
 {
 	std::random_device randDevice;
 	std::mt19937 generate(randDevice());  
@@ -536,46 +529,47 @@ const DirectX::XMFLOAT3 SwarmManager::GetRandomPosition()
 	auto y = static_cast<float>(distribute(generate));
 	auto z = static_cast<float>(distribute(generate));
 
-	return {x, y, z};
+	return {x, y, z, 0.f};
 
 }
 
 
 
-const float SwarmManager::CalculateDistance(const DirectX::XMFLOAT3 a, const DirectX::XMFLOAT3 b)
+const float SwarmManager::CalculateDistance(const DirectX::XMFLOAT4 a, const DirectX::XMFLOAT4 b)
 {
 	float x = (b.x - a.x);
 	float y = (b.y - a.y);
 	float z = (b.z - a.z);
+	float w = (b.w - a.w);
 
-	return (x * x) + (y * y) + (z * z); // remove sqrt because its performance heavy.
+	return (x * x) + (y * y) + (z * z) + (w * w); // remove sqrt because its performance heavy.
 }
 
 
 
-const DirectX::XMFLOAT3 SwarmManager::CalculateDirection(const DirectX::XMFLOAT3 a, const DirectX::XMFLOAT3 b)
+const DirectX::XMFLOAT4 SwarmManager::CalculateDirection(const DirectX::XMFLOAT4 a, const DirectX::XMFLOAT4 b)
 {
 	auto x = b.x - a.x;
 	auto y = b.y - a.y;
 	auto z = b.z - a.z;
 
-	return DirectX::XMFLOAT3(x, y, z);
+	return DirectX::XMFLOAT4(x, y, z, 0.f);
 }
 
 
-const DirectX::XMFLOAT3 SwarmManager::NormaliseFloat3(const DirectX::XMFLOAT3 a)
+const DirectX::XMFLOAT4 SwarmManager::NormaliseFloat3(const DirectX::XMFLOAT4 a)
 {
-	auto aVec = DirectX::XMLoadFloat3(&a);
+	auto aVec = DirectX::XMLoadFloat4(&a);
 	auto aVecNormalised = DirectX::XMVector3Normalize(aVec);
 
-	DirectX::XMFLOAT3 aNormalised;
-	DirectX::XMStoreFloat3(&aNormalised, aVecNormalised);
+	DirectX::XMFLOAT4 aNormalised;
+	DirectX::XMStoreFloat4(&aNormalised, aVecNormalised);
 
 	return aNormalised;
 }
 
 
-const DirectX::XMFLOAT3 SwarmManager::ComputeForce(const DirectX::XMFLOAT3 dir, const float mass)
+const DirectX::XMFLOAT4 SwarmManager::ComputeForce(const DirectX::XMFLOAT4 dir, const float mass)
 {
 	auto force = 50.f;
 
@@ -584,5 +578,5 @@ const DirectX::XMFLOAT3 SwarmManager::ComputeForce(const DirectX::XMFLOAT3 dir, 
 	auto z = (dir.z * force) * mass;
 
 
-	return DirectX::XMFLOAT3(x, y, z);
+	return DirectX::XMFLOAT4(x, y, z, 0.f);
 }

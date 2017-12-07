@@ -229,12 +229,13 @@ bool Application::HandleInput(float frameTime)
 	auto pickRayInWorldSpaceDir = DirectX::XMVector3TransformNormal(pickRayInViewSpaceDir, pickRayToWorldSpaceMatrix);
 	
 	
-	DirectX::XMFLOAT3 storeRayDir;
-	DirectX::XMStoreFloat3(&storeRayDir, pickRayInWorldSpaceDir);
+	DirectX::XMFLOAT4 storeRayDir;
+	DirectX::XMStoreFloat4(&storeRayDir, pickRayInWorldSpaceDir);
 
 		 storeRayDir.x *= 200.f;
 		 storeRayDir.y *= 200.f;
 		 storeRayDir.z = m_pCamera->GetPosition().z + 500.f;
+		 storeRayDir.w = 0.f;
 
 	//std::cout << " New vector is" <<
 	//	storeRayDir.x << ", " <<

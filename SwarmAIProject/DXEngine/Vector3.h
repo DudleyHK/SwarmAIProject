@@ -18,13 +18,13 @@ struct Vector3
 		y = _y;
 		z = _z;
 	}
-	DirectX::XMFLOAT3 DXFloat3() const
+	DirectX::XMFLOAT4 DXFloat4() const
 	{
-		return DirectX::XMFLOAT3(x, y, z);
+		return DirectX::XMFLOAT4(x, y, z, 0.f);
 	}
 	DirectX::XMVECTOR DXVector() const
 	{
-		return DirectX::XMLoadFloat3(&DXFloat3());
+		return DirectX::XMLoadFloat4(&DXFloat4());
 	}
 	float Magnitude()
 	{
