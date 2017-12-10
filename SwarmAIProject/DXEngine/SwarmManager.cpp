@@ -66,7 +66,7 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 {
 	if(!m_computeShaderImplementation)
 	{
-		SetGlobalBestDistance();
+		//SetGlobalBestDistance();
 		UpdatePhysics();
 	}
 
@@ -77,7 +77,8 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
 
-	deviceContext->Dispatch(m_instanceCount / 256, 1, 1);
+	//deviceContext->Dispatch(m_instanceCount/ 256, 1, 1);
+	deviceContext->Dispatch(m_instanceCount, 1, 1);
 
 	deviceContext->CSSetShader(NULL, NULL, 0);
 	ID3D11UnorderedAccessView* ppUAViewNULL[1] = {NULL};
@@ -94,9 +95,6 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	std::cout << std::endl << std::endl; 
 
 	ParticleData* particleData = new ParticleData[m_instanceCount];
-
-	
-
 
 	//deviceContext->Flush();
 	////////// DEBUG OUTPUT //////
@@ -150,8 +148,6 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 //}
 //deviceContext->Unmap(m_pOutputBuffer, 0);
 
-
-
 	deviceContext->CopyResource(m_pDebugOutputBuffer, m_pOutputBuffer);
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	deviceContext->Map(m_pDebugOutputBuffer, 0, D3D11_MAP_READ, 0, &mappedData);
@@ -164,6 +160,8 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 
 		if(!m_computeShaderImplementation)
 		{
+			particleData[i].m_globalBestDistance = particle.m_globalBestDistance;
+			particleData[i].m_globalBestPosition = particle.m_globalBestPosition;
 			particleData[i].m_position = m_Particles[i]->GetPosition().DXFloat4();
 			particleData[i].m_seperationForce = particle.m_seperationForce;
 			particleData[i].m_mass = 1.f;

@@ -63,10 +63,12 @@ private:
 
 	struct ParticleData
 	{
+		DirectX::XMFLOAT4 m_globalBestPosition;
 		DirectX::XMFLOAT4 m_seperationForce;
 		DirectX::XMFLOAT4 m_position;
 		DirectX::XMFLOAT4 m_velocity;
 		float  m_mass;
+		float m_globalBestDistance;
 	};
 
 	struct CollisionData

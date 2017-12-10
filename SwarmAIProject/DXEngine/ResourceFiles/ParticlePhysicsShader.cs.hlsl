@@ -12,10 +12,12 @@ cbuffer ParticleConstantBuffer
 
 struct ParticleData
 {
+	float4 globalBestPosition;
 	float4 seperationForce;
 	float4 position;
 	float4 velocity;
 	float  mass;
+	float  globalBestDistance;
 };
 
 
@@ -37,9 +39,11 @@ void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
 	const unsigned int P_ID = dispatchThreadID.x;
 
+	float4 p_globalBestPosition = ParticleDataInput[P_ID].globalBestPosition;
 	float4 p_seperationForce = ParticleDataInput[P_ID].seperationForce;
 	float4 p_position = ParticleDataInput[P_ID].position;
 	float4 p_velocity = ParticleDataInput[P_ID].velocity;
+	float  p_globalBestDistance = ParticleDataInput[P_ID].globalBestDistance;
 	float  p_mass = ParticleDataInput[P_ID].mass;
 
 	float  c_closestDist = CollisionDataInput[P_ID].closestDist;
@@ -94,7 +98,22 @@ void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 		}
 	}
 
+	
+
+	// Find the global best position
+	float distFromGoal = goalPosition - p_position;
+	if(distFromGoal < p_globalBestDistance)
+	{
+		p_globalBestDistance = distFromGoal;
+		p_globalBestPosition = p_position;
+	}
+
+
+
+
 	ParticleDataOutput[P_ID].seperationForce = repel;
 	ParticleDataOutput[P_ID].position = p_position;
 	ParticleDataOutput[P_ID].velocity = p_velocity;
+	ParticleDataOutput[P_ID].globalBestPosition = p_globalBestPosition;
+	ParticleDataOutput[P_ID].globalBestDistance = p_globalBestDistance;
 }
