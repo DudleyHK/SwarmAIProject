@@ -1,115 +1,100 @@
-/*
-
-
-
-*/
-
 
 cbuffer ParticleConstantBuffer
 {
 	float4 goalPosition;
 	float4 bestPosition;
-	float  basicForce;
+	float  instanceCount;
+	float  moveForce;
+	float  seperationForce;
 	float  gravityAcceleration;
+	bool   computeShaderImplementation;
 };
 
-
-struct ParticleStruct
+struct ParticleData
 {
+	float4 seperationForce;
 	float4 position;
 	float4 velocity;
-	float4 forces;
-	float4 gravity;
-	float  speed;
 	float  mass;
 };
 
-StructuredBuffer<ParticleStruct>   gInput;
-RWStructuredBuffer<ParticleStruct> gOutput;
 
-
-
-
-
-float CalculateDistance(float4 a, float4 b)
+struct CollisionData
 {
-	float x = (b.x - a.x);
-	float y = (b.y - a.y);
-	float z = (b.z - a.z);
-	float w = 0;
+	float  closestDist;
+	float  radius;
+	int    closestID;
+};
 
-	return (x * x) + (y * y) + (z * z) + (w * w);
-}
-
-
-
-float4 CalculateDirection(float4 a, float4 b)
-{
-	float x = b.x - a.x;
-	float y = b.y - a.y;
-	float z = b.z - a.z;
-
-	return float4(x, y, z, 0);
-}
-
-float4 ComputeForce(float4 dir, float mass)
-{
-	float x = (dir.x * basicForce) * mass;
-	float y = (dir.y * basicForce) * mass;
-	float z = (dir.z * basicForce) * mass;
-
-	return float4(x, y, z, 0);
-}
-
-float4 GetForce(float4 position, float4 gravity, float mass)
-{
-	// check if this particle has a closer distance
-	float4 dir           = CalculateDirection(position, bestPosition);
-	float4 normalisedDir = normalize(dir);
-	float4 force         = ComputeForce(normalisedDir, mass);
-	
-	return gravity + force;
-}
+StructuredBuffer<ParticleData>    ParticleDataInput;
+StructuredBuffer<CollisionData>   CollisionDataInput;
+RWStructuredBuffer<ParticleData>  ParticleDataOutput;
 
 
-float4 GetVelocity(float4 forces, float mass)
-{
-	float4 acc = forces / mass;
-	float4 deltaVel = acc * 0.01f;
-	return deltaVel;
-}
 
-
-float4 GetPosition(float4 velocity, float4 position)
-{
-	float4 deltaSpeed = velocity * 0.01f;
-	return position + deltaSpeed;
-}
-
-
-[numthreads(32, 16, 1)]
+[numthreads(256, 1, 1)]
 void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
-	const unsigned int dtid = dispatchThreadID.x;
-	ParticleStruct p = gInput[dtid];
+	const unsigned int P_ID = dispatchThreadID.x;
 
-	// reset
-	p.forces.xyzw  = 0;
-	p.gravity.xyzw = 0;
+	float4 p_seperationForce = ParticleDataInput[P_ID].seperationForce;
+	float4 p_position = ParticleDataInput[P_ID].position;
+	float4 p_velocity = ParticleDataInput[P_ID].velocity;
+	float  p_mass = ParticleDataInput[P_ID].mass;
 
-	// set gravity.
-	p.gravity.y = p.mass * gravityAcceleration;
+	float  c_closestDist = CollisionDataInput[P_ID].closestDist;
+	float  c_radius = CollisionDataInput[P_ID].radius;
+	int    c_closestID = CollisionDataInput[P_ID].closestID;
 
-	// calculate physics.
-	p.forces   = GetForce(p.position, p.gravity, p.mass);
-	p.velocity = GetVelocity(p.forces, p.mass);
-	p.position = GetPosition(p.velocity, p.position);
-	p.speed    = length(p.velocity);
 
-	// update output data.
-	gOutput[dtid].position = p.position;
-	gOutput[dtid].velocity = p.velocity;
-	gOutput[dtid].forces   = p.forces;
-	gOutput[dtid].gravity  = p.gravity;
-	gOutput[dtid].speed    = p.speed;
+	if(computeShaderImplementation)
+	{
+		/////////////////////////////////// PHYSICS /////////////////////////////
+		float4 p_gravity = (0, 0, 0, 0);
+		p_gravity.y = p_mass * gravityAcceleration;
+
+		// Get direction between me and best position
+		float4 dir = bestPosition - p_position;
+
+		float computeForce = (dir * moveForce) * p_mass;
+		float4 totalForces = p_gravity + computeForce + p_seperationForce;
+
+		float4 acc = (totalForces / p_mass);
+		float4 deltaAcc = acc * 0.01f;
+		p_velocity += deltaAcc;
+
+		float4 deltaVel = p_velocity * 0.01f;
+		p_position += deltaVel;
+	}
+
+	///////////////////////////////// COLLISIONS /////////////////////////
+	// reset the closest data
+	c_closestID = -1;
+	c_closestDist = 10000.f;
+
+	float4 repel = (0, 0, 0, 0);
+
+	[loop]
+	for(uint N_ID = 0; N_ID < instanceCount; N_ID++)
+	{
+		if(P_ID == N_ID) continue;
+
+		// get the position of the neighbouring particle.
+		float4 n_position = ParticleDataInput[N_ID].position;
+		float4 dir = n_position - p_position;
+		float  dist = pow(dir, 2);
+
+		if(dist < c_radius && dist < c_closestDist)
+		{
+			c_closestDist = dist;
+			c_closestID = N_ID;
+
+			float4 attract = (normalize(dir) * seperationForce) * p_mass;
+			repel = attract * -1.f;
+		}
+	}
+
+	ParticleDataOutput[P_ID].seperationForce = repel;
+	ParticleDataOutput[P_ID].position = p_position;
+	ParticleDataOutput[P_ID].velocity = p_velocity;
 }

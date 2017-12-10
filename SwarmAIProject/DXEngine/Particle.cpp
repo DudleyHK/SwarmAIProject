@@ -59,12 +59,15 @@ const int Particle::GetID() const
 {
 	return m_ID;
 }
-
-void Particle::SetSeperationForce(const Vector3 seperationForce)
+void Particle::SetSeperationForce(const DirectX::XMFLOAT4 seperationForce)
 {
-	m_seperationForce = seperationForce;
+	m_seperationForce = Vector3(seperationForce.x, seperationForce.y, seperationForce.z);
 }
 
+void Particle::SetPosition(const DirectX::XMFLOAT4 position)
+{
+	SetPosition(Vector3(position.x, position.y, position.z));
+}
 void Particle::SetPosition(const Vector3 position)
 {
 	m_position = position;
@@ -106,11 +109,6 @@ void Particle::CalcLoads(Vector3 force)
 	m_forces.x = 0.f;
 	m_forces.y = 0.f;
 	m_forces.z = 0.f;
-
-	//if(m_seperationForce.x == 0.f && m_seperationForce.y == 0.f && m_seperationForce.z == 0.f)
-	//{
-	//	int i = 0;
-	//}
 
 	// Aggregate forces
 	m_forces += m_gravity + force + m_seperationForce;

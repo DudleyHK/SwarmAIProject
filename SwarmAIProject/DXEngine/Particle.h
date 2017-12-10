@@ -24,7 +24,8 @@ public:
 	const float     GetMass()       const;
 	const int       GetRadius()     const;
 	const int       GetID()         const;
-	void SetSeperationForce(const Vector3);
+	void SetSeperationForce(const DirectX::XMFLOAT4);
+	void SetPosition(const DirectX::XMFLOAT4);
 	void SetPosition(const Vector3);
 	void SetVelocity(const Vector3);
 	void SetID(const int);

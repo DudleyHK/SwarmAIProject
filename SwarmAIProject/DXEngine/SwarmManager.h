@@ -49,35 +49,50 @@ private:
 	const DirectX::XMFLOAT4 NormaliseFloat3(const DirectX::XMFLOAT4 a);
 	const DirectX::XMFLOAT4 ComputeForce(const DirectX::XMFLOAT4 dir, const float mass);
 
-	__declspec(align(64))
-	struct ParticleConstantBuffer
+	__declspec(align(16))
+	struct ConstantBuffer
 	{
-		DirectX::XMFLOAT4 m_goalPosition; // if i get rid of all other variables in const buffer. bets poition works.
+		DirectX::XMFLOAT4 m_goalPosition;
 		DirectX::XMFLOAT4 m_bestPosition;
-		float m_basicForce;
+		float m_instanceCount;
+		float m_moveForce;
+		float m_seperationForce;
 		float m_gravityAcceleration;
+		bool  m_computeShaderImplementation;
 	};
-	struct ParticleStruct
+
+	struct ParticleData
 	{
+		DirectX::XMFLOAT4 m_seperationForce;
 		DirectX::XMFLOAT4 m_position;
 		DirectX::XMFLOAT4 m_velocity;
-		DirectX::XMFLOAT4 m_forces;
-		DirectX::XMFLOAT4 m_gravity;
-		float  m_speed;
 		float  m_mass;
 	};
 
+	struct CollisionData
+	{
+		float m_closestDist;
+		float m_radius;
+		int   m_closetID;
+	};
+
+	
+
 
 	// Structured Buffers
-	ID3D11Buffer*                       m_pInputBuffer = nullptr;
+	ID3D11Buffer*                       m_pParticleInputBuffer = nullptr;
+	ID3D11Buffer*                       m_pCollisionInputBuffer = nullptr;
 	ID3D11Buffer*                       m_pOutputBuffer = nullptr;
 	ID3D11Buffer*                       m_pDebugOutputBuffer = nullptr;
 	ID3D11Buffer*                       m_pConstantBuffer = nullptr;
-	ID3D11ShaderResourceView*           m_pInputSRV = nullptr;
+	ID3D11ShaderResourceView*           m_pParticleDataInputSRV = nullptr;
+	ID3D11ShaderResourceView*           m_pCollisionDataInputSRV = nullptr;
 	ID3D11UnorderedAccessView*          m_pOutputUAV = nullptr;
 	ID3D11ComputeShader* m_pParticleComputeShader = nullptr;
 
-	ParticleStruct* m_ParticleStructList;
+	ParticleData* m_ParticleData;
+	CollisionData* m_CollisionData;
+
 
 	std::vector<std::unique_ptr<Particle>> m_Particles;
 	std::vector<std::unique_ptr<DirectX::XMMATRIX>> m_WorldMatrices;
@@ -89,4 +104,6 @@ private:
 	float m_deltaTime = 0.01f;
 	float m_globalBestDistance = 0.f;
 	DirectX::XMFLOAT4 m_globalBestPosition = {0.f, 0.f, 0.f, 0.f};
+
+	bool m_computeShaderImplementation = false;
 };
