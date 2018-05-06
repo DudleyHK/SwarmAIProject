@@ -85,7 +85,7 @@ void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 
 		// get the position of the neighbouring particle.
 		float4 n_position = ParticleDataInput[N_ID].position;
-		float4 dir = n_position - p_position;
+		float4 dir  = n_position - p_position;
 		float  dist = pow(dir, 2);
 
 		if(dist < c_radius && dist < c_closestDist)
@@ -97,18 +97,6 @@ void ParticlePhysicsShader(uint3 dispatchThreadID : SV_DispatchThreadID)
 			repel = attract * -1.f;
 		}
 	}
-
-	
-
-	// Find the global best position
-	float distFromGoal = goalPosition - p_position;
-	if(distFromGoal < p_globalBestDistance)
-	{
-		p_globalBestDistance = distFromGoal;
-		p_globalBestPosition = p_position;
-	}
-
-
 
 
 	ParticleDataOutput[P_ID].seperationForce = repel;

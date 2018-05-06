@@ -66,7 +66,7 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 {
 	if(!m_computeShaderImplementation)
 	{
-		//SetGlobalBestDistance();
+		SetGlobalBestDistance();
 		UpdatePhysics();
 	}
 
@@ -77,8 +77,7 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	deviceContext->CSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
 
-	//deviceContext->Dispatch(m_instanceCount/ 256, 1, 1);
-	deviceContext->Dispatch(m_instanceCount, 1, 1);
+	deviceContext->Dispatch(m_instanceCount/ 256, 1, 1);
 
 	deviceContext->CSSetShader(NULL, NULL, 0);
 	ID3D11UnorderedAccessView* ppUAViewNULL[1] = {NULL};
@@ -165,6 +164,9 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 			particleData[i].m_position = m_Particles[i]->GetPosition().DXFloat4();
 			particleData[i].m_seperationForce = particle.m_seperationForce;
 			particleData[i].m_mass = 1.f;
+
+			m_Particles[i]->SetSeperationForce(particle.m_seperationForce);
+			m_Particles[i]->SetPosition(particle.m_position);
 		}
 		else
 		{
@@ -174,20 +176,13 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 			particleData[i].m_mass = 1.f;
 		}
 
-		//std::cout << "GPU particle " << i << " position is (" << 
-		//	particle.m_position.x << ", " <<
-		//	particle.m_position.y << ", " <<
-		//	particle.m_position.z << ")" << std::endl;
-		
-		//std::cout << "GPU particle " << i << " seperation force is (" << particle.m_seperationForce.x << ", " <<
-		//	particle.m_seperationForce.y << ", " <<
-		//	particle.m_seperationForce.z << ")" << std::endl;
-		//
 
-		if(!m_computeShaderImplementation)
+
+		auto particleDist = CalculateDistance(particle.m_position, m_goalPosition);
+		if(particleDist < m_globalBestDistance)
 		{
-			m_Particles[i]->SetSeperationForce(particle.m_seperationForce);
-			m_Particles[i]->SetPosition(particle.m_position);
+			m_globalBestDistance = particleDist;
+			m_globalBestPosition = particle.m_position;
 		}
 	}
 	deviceContext->Unmap(m_pDebugOutputBuffer, 0);
@@ -218,8 +213,6 @@ void SwarmManager::Update(ID3D11DeviceContext* deviceContext)
 	}
 	
 	SafeDelete(particleData);
-
-
 	ConstantBuffer pData = {};
 
 
@@ -717,7 +710,7 @@ const DirectX::XMFLOAT4 SwarmManager::NormaliseFloat3(const DirectX::XMFLOAT4 a)
 
 const DirectX::XMFLOAT4 SwarmManager::ComputeForce(const DirectX::XMFLOAT4 dir, const float mass)
 {
-	auto force = 50.f;
+	auto force = 300.f;
 
 	auto x = (dir.x * force) * mass;
 	auto y = (dir.y * force) * mass;
