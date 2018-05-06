@@ -99,10 +99,10 @@ const bool DXManager::Init(const int screenWidth,
 	SafeRelease(pFactory);
 
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-//#ifdef _DEBUG
+#ifdef _DEBUG
 	// If the project is in a debug build, enable the debug layer.
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-//#endif
+#endif
 
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
@@ -127,6 +127,7 @@ const bool DXManager::Init(const int screenWidth,
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 
+
 	if(fullscreen)
 	{
 		swapChainDesc.Windowed = false;
@@ -142,7 +143,7 @@ const bool DXManager::Init(const int screenWidth,
 	swapChainDesc.Flags = 0;
 
 
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, featureLevels, 1,
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, creationFlags, featureLevels, numFeatureLevels,
 										   D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain, &m_pDevice, NULL, &m_pDeviceContext);
 	if(FAILED(result))
 	{
