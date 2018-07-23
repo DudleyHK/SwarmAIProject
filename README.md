@@ -1,4 +1,6 @@
-# SwarmAIProject
-Swarm Intelligence project for Uni. 
+# Swarm Intelligence Research Project
 
-Using DirectX11 and Visual Studio 2015.
+[Trailer](https://www.youtube.com/watch?v=wBVNWJavlmk)
+
+
+![](https://dudleyhk.github.io/portfolio/swarm%20intelligence/screenshots/Screenshot%20(01).png)
