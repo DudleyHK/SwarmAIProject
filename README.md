@@ -4,6 +4,7 @@
 
 ---
 
+![](https://dudleyhk.github.io/portfolio/swarm%20intelligence/screenshots/Screenshot%20(07).png)
 
 ![](https://dudleyhk.github.io/portfolio/swarm%20intelligence/screenshots/Screenshot%20(02).png)
 
